@@ -1,0 +1,9 @@
+[tasks.something]
+command = "echo"
+args = ["test", "wurl"]
+
+[tasks.noargs]
+command = "echo"
+
+[tasks.something_else]
+subRecipes = ["something"]
