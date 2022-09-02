@@ -6,4 +6,4 @@ args = ["test", "wurl"]
 command = "echo"
 
 [tasks.something_else]
-subRecipes = ["something"]
+sub_tasks = ["something"]
