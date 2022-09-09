@@ -1,13 +1,17 @@
+mod error;
+
 use serde::Deserialize;
 use std::{collections::HashMap, fs, path::Path};
 
 use colored::Colorize;
 
+use error::{AlchemistError, AlchemistErrorType, Result};
+
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const CONFIG_FILE: &str = "alchemist.toml";
 
 pub trait RunnableTask {
-    fn run(&self) -> Result<(), String>;
+    fn run(&self) -> Result<()>;
 }
 
 #[derive(Debug, Deserialize)]
@@ -19,7 +23,9 @@ pub trait RunnableTask {
 /// args = ["hello", "world"]
 /// ```
 pub struct AlchemistBasicTask {
+    #[allow(dead_code)]
     command: String,
+    #[allow(dead_code)]
     args: Option<Vec<String>>,
 }
 
@@ -36,12 +42,16 @@ pub struct AlchemistBasicTask {
 ///
 /// ```
 pub struct AlchemistSerialTasks {
+    #[allow(dead_code)]
     sub_tasks: Vec<String>,
 }
 
 impl RunnableTask for AlchemistBasicTask {
-    fn run(&self) -> Result<(), String> {
-        Err("Not Implemented".to_string())
+    fn run(&self) -> Result<()> {
+        Err(AlchemistError::new(
+            AlchemistErrorType::ConfigParseError,
+            "It not workingz",
+        ))
     }
 }
 
@@ -54,8 +64,9 @@ impl AlchemistSerialTasks {
 }
 
 impl RunnableTask for AlchemistSerialTasks {
-    fn run(&self) -> Result<(), String> {
-        Err("Not Implemented".to_string())
+    fn run(&self) -> Result<()> {
+        //Err("Not Implemented".to_string())
+        Ok(())
     }
 }
 
@@ -88,18 +99,24 @@ pub struct AlchemistConfig {
     tasks: HashMap<String, AlchemistTaskType>,
 }
 
-fn main() {
+fn do_main() -> Result<()> {
     println!("{} version {}", "alchemist".green(), VERSION.yellow());
     println!("searching for {}", CONFIG_FILE);
 
     let config_file_path = Path::new(CONFIG_FILE);
 
     if !config_file_path.exists() {
-        panic!("config file does not exist"); // TODO
+        return Err(AlchemistError::new(
+            AlchemistErrorType::NoConfigFileError,
+            format!("'{}' does not exist", CONFIG_FILE),
+        ));
     }
     if !config_file_path.is_file() {
         // Known bug: no symlinks, not going to fix
-        panic!("config file is a not a file"); // TODO
+        return Err(AlchemistError::new(
+            AlchemistErrorType::NoConfigFileError,
+            format!("'{}' is not a file", CONFIG_FILE),
+        ));
     }
 
     let config_file_content: String = fs::read_to_string(CONFIG_FILE).unwrap();
@@ -112,12 +129,20 @@ fn main() {
         match unknown_task {
             AlchemistTaskType::AlchemistBasicTask(task) => {
                 println!("Basic: {:#?}", task_name);
-                let _ = task.run();
+                let _ = task.run()?;
             }
             AlchemistTaskType::AlchemistSerialTasks(task) => {
                 println!("SerialTasks: {:#?}", task_name);
-                let _ = task.run();
+                let _ = task.run()?;
             }
         }
+    }
+    Ok(())
+}
+
+fn main() {
+    match do_main() {
+        Ok(_) => println!("all donzos, veri gud"),
+        Err(e) => eprintln!("{}", e),
     }
 }
