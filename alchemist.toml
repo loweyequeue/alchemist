@@ -1,9 +1,9 @@
-[tasks.something]
+[tasks.hello_world]
 command = "echo"
-args = ["test", "wurl"]
+args = ["hello", "world"]
 
 [tasks.noargs]
-command = "echo"
+command = "pwd"
 
-[tasks.something_else]
-sub_tasks = ["something"]
+[tasks.serial_demo]
+serial_tasks = ["hello_world", "pwd"]

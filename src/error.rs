@@ -26,9 +26,12 @@ impl std::fmt::Display for AlchemistError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "[{}][{}]: {}",
-            "ERR".red().bold(),
-            self.error_type.to_string(),
+            "{}{}{}{}{} {}",
+            "[".dimmed(),
+            "✘".red().bold(),
+            "][".dimmed(),
+            self.error_type.to_string().dimmed(),
+            "]:".dimmed(),
             self.error_message
         )
     }
@@ -55,7 +58,7 @@ mod tests {
         assert_eq!(er.error_type, AlchemistErrorType::ConfigParseError);
         let expected = format!(
             "[{}][ConfigParseError]: failed to parse",
-            "ERR".red().bold()
+            "✘".red().bold()
         );
         let test_str = format!("{}", er);
         assert_eq!(expected, test_str);

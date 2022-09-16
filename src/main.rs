@@ -10,11 +10,15 @@ use error::{AlchemistError, AlchemistErrorType, Result};
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const CONFIG_FILE: &str = "alchemist.toml";
 
+// TODO: either run Basic task
+// or validate Serial tasks
+
 pub trait RunnableTask {
     fn run(&self) -> Result<()>;
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 /// Alchemist BasicTask type is a simple task with a command and optional args
 /// Example:
 /// ```
@@ -30,6 +34,7 @@ pub struct AlchemistBasicTask {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 /// Alchemist SerialTasks type can be a set of multiple basic tasks
 ///
 /// These tasks are executed in the given order
@@ -43,22 +48,23 @@ pub struct AlchemistBasicTask {
 /// ```
 pub struct AlchemistSerialTasks {
     #[allow(dead_code)]
-    sub_tasks: Vec<String>,
+    serial_tasks: Vec<String>,
 }
 
 impl RunnableTask for AlchemistBasicTask {
     fn run(&self) -> Result<()> {
-        Err(AlchemistError::new(
-            AlchemistErrorType::ConfigParseError,
-            "It not workingz",
-        ))
+        // Err(AlchemistError::new(
+        //     AlchemistErrorType::ConfigParseError,
+        //     "It not workingz",
+        // ))
+        Ok(())
     }
 }
 
 impl AlchemistSerialTasks {
     pub fn to_basic_tasks() -> AlchemistSerialTasks {
         AlchemistSerialTasks {
-            sub_tasks: Vec::new(),
+            serial_tasks: Vec::new(),
         }
     }
 }
@@ -122,7 +128,12 @@ fn do_main() -> Result<()> {
     let config_file_content: String = fs::read_to_string(CONFIG_FILE).unwrap();
     let alchemist_config: AlchemistConfig = match toml::from_str(&config_file_content) {
         Ok(v) => v,
-        Err(_) => panic!("Invalid configuration!!!!"), // TODO: custom errors and handling instead of panic
+        Err(_) => {
+            return Err(AlchemistError::new(
+                AlchemistErrorType::ConfigParseError,
+                "Invalid configuration.",
+            ))
+        }
     };
 
     for (task_name, unknown_task) in alchemist_config.tasks.iter() {
@@ -142,7 +153,13 @@ fn do_main() -> Result<()> {
 
 fn main() {
     match do_main() {
-        Ok(_) => println!("all donzos, veri gud"),
+        Ok(_) => println!(
+            "{}{}{} {}",
+            "[".dimmed(),
+            "✔︎".green().bold(),
+            "]:".dimmed(),
+            "all donzos, veri gud"
+        ),
         Err(e) => eprintln!("{}", e),
     }
 }
