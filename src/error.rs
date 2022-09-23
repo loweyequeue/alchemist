@@ -1,9 +1,12 @@
 use colored::Colorize;
 
+use crate::cli;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum AlchemistErrorType {
     NoConfigFileError,
     ConfigParseError,
+    CommandFailedError,
 }
 
 impl ToString for AlchemistErrorType {
@@ -11,6 +14,7 @@ impl ToString for AlchemistErrorType {
         match self {
             Self::NoConfigFileError => "NoConfigFileError",
             Self::ConfigParseError => "ConfigParseError",
+            Self::CommandFailedError => "CommandFailedError",
         }
         .to_string()
     }
@@ -28,7 +32,8 @@ impl std::fmt::Display for AlchemistError {
             f,
             "{}{}{}{}{} {}",
             "[".dimmed(),
-            "✘".red().bold(),
+            cli::ERROR.red().bold(),
+            //"✘".red().bold(),
             "][".dimmed(),
             self.error_type.to_string().dimmed(),
             "]:".dimmed(),
@@ -56,10 +61,7 @@ mod tests {
     fn exception_blatt() {
         let er = AlchemistError::new(AlchemistErrorType::ConfigParseError, "failed to parse");
         assert_eq!(er.error_type, AlchemistErrorType::ConfigParseError);
-        let expected = format!(
-            "[{}][ConfigParseError]: failed to parse",
-            "✘".red().bold()
-        );
+        let expected = format!("[{}][ConfigParseError]: failed to parse", "✘".red().bold());
         let test_str = format!("{}", er);
         assert_eq!(expected, test_str);
     }

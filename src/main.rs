@@ -1,20 +1,27 @@
+mod cli;
 mod error;
+
+use std::process::Command;
 
 use serde::Deserialize;
 use std::{collections::HashMap, fs, path::Path};
 
 use colored::Colorize;
 
-use error::{AlchemistError, AlchemistErrorType, Result};
+use crate::error::{AlchemistError, AlchemistErrorType, Result};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const CONFIG_FILE: &str = "alchemist.toml";
 
-// TODO: either run Basic task
-// or validate Serial tasks
+/// TODO:
+///
+/// - [ ] Run Basic Task: Error handling & large fn body refactor;
+/// - [ ] v / x / info -> use cli module;
+/// - [ ] colors for messages (consistently)
+/// - [ ] or validate Serial tasks
 
 pub trait RunnableTask {
-    fn run(&self) -> Result<()>;
+    fn run<T: ToString>(&self, task_name: T) -> Result<()>;
 }
 
 #[derive(Debug, Deserialize)]
@@ -52,25 +59,43 @@ pub struct AlchemistSerialTasks {
 }
 
 impl RunnableTask for AlchemistBasicTask {
-    fn run(&self) -> Result<()> {
-        // Err(AlchemistError::new(
-        //     AlchemistErrorType::ConfigParseError,
-        //     "It not workingz",
-        // ))
+    fn run<T: ToString>(&self, task_name: T) -> Result<()> {
+        let task_name = task_name.to_string();
+        let mut cmd = Command::new(&self.command);
+        let command_str = if let Some(args) = &self.args {
+            cmd.args(args);
+            format!("{} {}", &self.command, args.join(" "))
+        } else {
+            format!("{}", &self.command)
+        };
+        println!("[{}]: Running command {}", cli::INFO, command_str);
+        let error_msg =
+            format!("While running basic task {task_name}, command `{command_str}` failed.");
+        let mut child = match cmd.spawn() {
+            Ok(child) => child,
+            Err(_) => {
+                return Err(AlchemistError::new(
+                    AlchemistErrorType::CommandFailedError,
+                    error_msg,
+                ))
+            }
+        };
+        let exit_code = child.wait().unwrap(); // TODO: handle error
+        if !exit_code.success() {
+            println!(":(")
+        }
         Ok(())
     }
 }
 
 impl AlchemistSerialTasks {
-    pub fn to_basic_tasks() -> AlchemistSerialTasks {
-        AlchemistSerialTasks {
-            serial_tasks: Vec::new(),
-        }
+    pub fn to_basic_tasks() -> Result<Vec<AlchemistBasicTask>> {
+        Ok(Vec::new())
     }
 }
 
 impl RunnableTask for AlchemistSerialTasks {
-    fn run(&self) -> Result<()> {
+    fn run<T: ToString>(&self, _task_name: T) -> Result<()> {
         //Err("Not Implemented".to_string())
         Ok(())
     }
@@ -139,12 +164,12 @@ fn do_main() -> Result<()> {
     for (task_name, unknown_task) in alchemist_config.tasks.iter() {
         match unknown_task {
             AlchemistTaskType::AlchemistBasicTask(task) => {
-                println!("Basic: {:#?}", task_name);
-                let _ = task.run()?;
+                println!("[Z]: Running task {}", task_name);
+                let _ = task.run(task_name)?;
             }
             AlchemistTaskType::AlchemistSerialTasks(task) => {
                 println!("SerialTasks: {:#?}", task_name);
-                let _ = task.run()?;
+                let _ = task.run(task_name)?;
             }
         }
     }
@@ -156,7 +181,7 @@ fn main() {
         Ok(_) => println!(
             "{}{}{} {}",
             "[".dimmed(),
-            "✔︎".green().bold(),
+            cli::OK.green().bold(),
             "]:".dimmed(),
             "all donzos, veri gud"
         ),
