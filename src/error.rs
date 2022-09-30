@@ -1,7 +1,3 @@
-use colored::Colorize;
-
-use crate::cli;
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum AlchemistErrorType {
     NoConfigFileError,
@@ -22,24 +18,8 @@ impl ToString for AlchemistErrorType {
 
 #[derive(Debug)]
 pub struct AlchemistError {
-    error_type: AlchemistErrorType,
-    error_message: String,
-}
-
-impl std::fmt::Display for AlchemistError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}{}{}{}{} {}",
-            "[".dimmed(),
-            cli::ERROR.red().bold(),
-            //"✘".red().bold(),
-            "][".dimmed(),
-            self.error_type.to_string().dimmed(),
-            "]:".dimmed(),
-            self.error_message
-        )
-    }
+    pub error_type: AlchemistErrorType,
+    pub error_message: String,
 }
 
 impl AlchemistError {
@@ -52,17 +32,3 @@ impl AlchemistError {
 }
 
 pub type Result<T> = std::result::Result<T, AlchemistError>;
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn exception_blatt() {
-        let er = AlchemistError::new(AlchemistErrorType::ConfigParseError, "failed to parse");
-        assert_eq!(er.error_type, AlchemistErrorType::ConfigParseError);
-        let expected = format!("[{}][ConfigParseError]: failed to parse", "✘".red().bold());
-        let test_str = format!("{}", er);
-        assert_eq!(expected, test_str);
-    }
-}

@@ -4,7 +4,7 @@ mod error;
 use std::process::Command;
 
 use serde::Deserialize;
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, env, fs, path::Path};
 
 use colored::Colorize;
 
@@ -15,10 +15,10 @@ const CONFIG_FILE: &str = "alchemist.toml";
 
 /// TODO:
 ///
-/// - [ ] Run Basic Task: Error handling & large fn body refactor;
-/// - [ ] v / x / info -> use cli module;
-/// - [ ] colors for messages (consistently)
-/// - [ ] or validate Serial tasks
+/// - [ ] Command line parsing
+///   - [ ] Run tasks from commandline not everythingz.
+///
+/// - [ ] validate Serial tasks
 
 pub trait RunnableTask {
     fn run<T: ToString>(&self, task_name: T) -> Result<()>;
@@ -68,23 +68,31 @@ impl RunnableTask for AlchemistBasicTask {
         } else {
             format!("{}", &self.command)
         };
-        println!("[{}]: Running command {}", cli::INFO, command_str);
-        let error_msg =
-            format!("While running basic task {task_name}, command `{command_str}` failed.");
+        cli::info(format!("Running command {}", command_str));
         let mut child = match cmd.spawn() {
             Ok(child) => child,
             Err(_) => {
                 return Err(AlchemistError::new(
                     AlchemistErrorType::CommandFailedError,
-                    error_msg,
+                    format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run."),
                 ))
             }
         };
-        let exit_code = child.wait().unwrap(); // TODO: handle error
-        if !exit_code.success() {
-            println!(":(")
+        if let Ok(exit_code) = child.wait() {
+            if exit_code.success() {
+                cli::ok(format!("Finished command {}", command_str));
+                Ok(())
+            } else {
+                return Err(AlchemistError::new(
+                    AlchemistErrorType::CommandFailedError,
+                    format!(
+                        "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code)."
+                    ),
+                ));
+            }
+        } else {
+            return Err(AlchemistError::new(AlchemistErrorType::CommandFailedError, format!("Execution of basic task {task_name} with command `{command_str}` failed to start.")));
         }
-        Ok(())
     }
 }
 
@@ -96,7 +104,6 @@ impl AlchemistSerialTasks {
 
 impl RunnableTask for AlchemistSerialTasks {
     fn run<T: ToString>(&self, _task_name: T) -> Result<()> {
-        //Err("Not Implemented".to_string())
         Ok(())
     }
 }
@@ -130,9 +137,9 @@ pub struct AlchemistConfig {
     tasks: HashMap<String, AlchemistTaskType>,
 }
 
-fn do_main() -> Result<()> {
-    println!("{} version {}", "alchemist".green(), VERSION.yellow());
-    println!("searching for {}", CONFIG_FILE);
+fn do_main(tasks: Vec<String>) -> Result<()> {
+    println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
+    cli::debug(format!("searching for {}", CONFIG_FILE));
 
     let config_file_path = Path::new(CONFIG_FILE);
 
@@ -161,15 +168,11 @@ fn do_main() -> Result<()> {
         }
     };
 
-    for (task_name, unknown_task) in alchemist_config.tasks.iter() {
-        match unknown_task {
-            AlchemistTaskType::AlchemistBasicTask(task) => {
-                println!("[Z]: Running task {}", task_name);
-                let _ = task.run(task_name)?;
-            }
-            AlchemistTaskType::AlchemistSerialTasks(task) => {
-                println!("SerialTasks: {:#?}", task_name);
-                let _ = task.run(task_name)?;
+    for t in tasks {
+        if let Some(v) = alchemist_config.tasks.get(&t) {
+            match v {
+                AlchemistTaskType::AlchemistBasicTask(z) => z.run(t)?,
+                AlchemistTaskType::AlchemistSerialTasks(z) => z.run(t)?,
             }
         }
     }
@@ -177,14 +180,15 @@ fn do_main() -> Result<()> {
 }
 
 fn main() {
-    match do_main() {
-        Ok(_) => println!(
-            "{}{}{} {}",
-            "[".dimmed(),
-            cli::OK.green().bold(),
-            "]:".dimmed(),
-            "all donzos, veri gud"
-        ),
-        Err(e) => eprintln!("{}", e),
+    let args: Vec<String> = env::args_os()
+        .skip(1)
+        .filter_map(|i| match i.to_str() {
+            Some(v) => Some(v.to_owned()),
+            None => None,
+        })
+        .collect();
+    match do_main(args) {
+        Ok(_) => cli::ok("all donzos, veri gud"),
+        Err(e) => cli::error(e),
     }
 }
