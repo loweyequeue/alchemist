@@ -121,6 +121,15 @@ pub enum AlchemistTaskType {
     AlchemistSerialTasks(AlchemistSerialTasks),
 }
 
+impl RunnableTask for AlchemistTaskType {
+    fn run<T: ToString>(&self, task_name: T) -> Result<()> {
+        return match self {
+            AlchemistTaskType::AlchemistBasicTask(z) => z.run(task_name),
+            AlchemistTaskType::AlchemistSerialTasks(z) => z.run(task_name),
+        };
+    }
+}
+
 #[derive(Debug, Deserialize)]
 /// Contains the structure of the alchemist.toml file
 ///
@@ -170,10 +179,7 @@ fn do_main(tasks: Vec<String>) -> Result<()> {
 
     for t in tasks {
         if let Some(v) = alchemist_config.tasks.get(&t) {
-            match v {
-                AlchemistTaskType::AlchemistBasicTask(z) => z.run(t)?,
-                AlchemistTaskType::AlchemistSerialTasks(z) => z.run(t)?,
-            }
+            v.run(t)?
         }
     }
     Ok(())
