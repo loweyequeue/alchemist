@@ -2,8 +2,19 @@
 command = "cargo"
 args = ["build", "--release"]
 
-[tasks.noargs]
-command = "pwd"
+[tasks.install]
+command = "cargo"
+args = ["install", "--path", "."]
 
-[tasks.serial_demo]
-serial_tasks = ["hello_world", "pwd"]
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.reinstall]
+serial_tasks = ["clean", "install"]
+
+[tasks.rebuild]
+serial_tasks = ["clean", "build"]
+
+[tasks.fail]
+serial_tasks = ["soup_machine"]

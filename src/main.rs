@@ -15,13 +15,10 @@ const CONFIG_FILE: &str = "alchemist.toml";
 
 /// TODO:
 ///
-/// - [ ] Command line parsing
-///   - [ ] Run tasks from commandline not everythingz.
-///
-/// - [ ] validate Serial tasks
+/// - [ ] Refactor code into multiple files
 
 pub trait RunnableTask {
-    fn run<T: ToString>(&self, task_name: T) -> Result<()>;
+    fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()>;
 }
 
 #[derive(Debug, Deserialize)]
@@ -59,7 +56,7 @@ pub struct AlchemistSerialTasks {
 }
 
 impl RunnableTask for AlchemistBasicTask {
-    fn run<T: ToString>(&self, task_name: T) -> Result<()> {
+    fn run<T: ToString>(&self, task_name: T, _config: &AlchemistConfig) -> Result<()> {
         let task_name = task_name.to_string();
         let mut cmd = Command::new(&self.command);
         let command_str = if let Some(args) = &self.args {
@@ -103,7 +100,27 @@ impl AlchemistSerialTasks {
 }
 
 impl RunnableTask for AlchemistSerialTasks {
-    fn run<T: ToString>(&self, _task_name: T) -> Result<()> {
+    fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()> {
+        cli::info(format!(
+            "Running serial task '{}' which is a collection of {:?}",
+            task_name.to_string(),
+            self.serial_tasks
+        ));
+        for t in &self.serial_tasks {
+            match config.tasks.get(t) {
+                Some(v) => v.run(t, config),
+                None => {
+                    return Err(AlchemistError::new(
+                        AlchemistErrorType::InvalidSerialTask,
+                        format!(
+                            "Serial task '{}' has an invalid subtask '{t}'",
+                            task_name.to_string()
+                        ),
+                    ))
+                }
+            }?;
+        }
+        cli::ok(format!("Finished serial task '{}'", task_name.to_string()));
         Ok(())
     }
 }
@@ -122,10 +139,10 @@ pub enum AlchemistTaskType {
 }
 
 impl RunnableTask for AlchemistTaskType {
-    fn run<T: ToString>(&self, task_name: T) -> Result<()> {
+    fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()> {
         return match self {
-            AlchemistTaskType::AlchemistBasicTask(z) => z.run(task_name),
-            AlchemistTaskType::AlchemistSerialTasks(z) => z.run(task_name),
+            AlchemistTaskType::AlchemistBasicTask(z) => z.run(task_name, &config),
+            AlchemistTaskType::AlchemistSerialTasks(z) => z.run(task_name, &config),
         };
     }
 }
@@ -179,7 +196,7 @@ fn do_main(tasks: Vec<String>) -> Result<()> {
 
     for t in tasks {
         if let Some(v) = alchemist_config.tasks.get(&t) {
-            v.run(t)?
+            v.run(t, &alchemist_config)?
         }
     }
     Ok(())

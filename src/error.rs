@@ -3,6 +3,7 @@ pub enum AlchemistErrorType {
     NoConfigFileError,
     ConfigParseError,
     CommandFailedError,
+    InvalidSerialTask,
 }
 
 impl ToString for AlchemistErrorType {
@@ -11,6 +12,7 @@ impl ToString for AlchemistErrorType {
             Self::NoConfigFileError => "NoConfigFileError",
             Self::ConfigParseError => "ConfigParseError",
             Self::CommandFailedError => "CommandFailedError",
+            Self::InvalidSerialTask => "InvalidSerialTask",
         }
         .to_string()
     }
