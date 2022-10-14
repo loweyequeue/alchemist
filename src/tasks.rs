@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use crate::alchemist::AlchemistConfig;
+use crate::config::AlchemistConfig;
 use crate::error::{AlchemistError, AlchemistErrorType, Result};
 
 use crate::cli;

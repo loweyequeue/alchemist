@@ -1,5 +1,5 @@
-mod alchemist;
 mod cli;
+mod config;
 mod error;
 mod tasks;
 use std::env;
@@ -7,7 +7,7 @@ use std::env;
 use colored::Colorize;
 
 use crate::tasks::RunnableTask;
-use crate::{alchemist::get_config, error::Result};
+use crate::{config::get_config, error::Result};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
