@@ -6,14 +6,16 @@ use std::env;
 
 use colored::Colorize;
 
+use crate::config::{locate_config, parse_config, set_cwd_to_config_dir};
+use crate::error::Result;
 use crate::tasks::RunnableTask;
-use crate::{config::get_config, error::Result};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// TODO:
 ///
-/// - [ ] Search upwards for config file (not just current dir)
+/// - [ ] help/list command with --<arg>
+/// - [ ] init command to create template file
 
 fn run_cli_tool() -> Result<()> {
     println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
@@ -26,7 +28,9 @@ fn run_cli_tool() -> Result<()> {
         })
         .collect();
 
-    let alchemist_config = get_config()?;
+    let config_file_path = locate_config()?;
+    let alchemist_config = parse_config(&config_file_path)?;
+    set_cwd_to_config_dir(&config_file_path)?;
 
     for t in tasks {
         if let Some(v) = alchemist_config.tasks.get(&t) {

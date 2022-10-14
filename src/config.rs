@@ -1,4 +1,7 @@
-use std::{collections::HashMap, fs, path::Path};
+use std::env::{current_dir, set_current_dir};
+
+use std::path::PathBuf;
+use std::{collections::HashMap, fs};
 
 use serde::Deserialize;
 
@@ -24,27 +27,38 @@ pub struct AlchemistConfig {
     pub tasks: HashMap<String, AlchemistTaskType>,
 }
 
-pub fn get_config() -> Result<AlchemistConfig> {
+pub fn locate_config() -> Result<PathBuf> {
+    let workingdir = current_dir().or(Err(AlchemistError::new(
+        AlchemistErrorType::CurrentDirIsInvalid,
+        "The current directory does not exist or you have no permissions for it.",
+    )))?;
+
+    workingdir
+        .ancestors()
+        .map(|p| p.to_path_buf().join(CONFIG_FILE))
+        .filter(|c| c.exists() && c.is_file())
+        .next()
+        .ok_or(AlchemistError::new(
+            AlchemistErrorType::NoConfigFileError,
+            format!("'{}' does not exist or is not a file.", CONFIG_FILE),
+        ))
+}
+
+pub fn parse_config(config_file_path: &PathBuf) -> Result<AlchemistConfig> {
     cli::debug(format!("searching for {}", CONFIG_FILE));
-    let config_file_path = Path::new(CONFIG_FILE);
 
-    if !config_file_path.exists() {
-        return Err(AlchemistError::new(
-            AlchemistErrorType::NoConfigFileError,
-            format!("'{}' does not exist", CONFIG_FILE),
-        ));
-    }
-    if !config_file_path.is_file() {
-        // Known bug: no symlinks, not going to fix
-        return Err(AlchemistError::new(
-            AlchemistErrorType::NoConfigFileError,
-            format!("'{}' is not a file", CONFIG_FILE),
-        ));
-    }
-
-    let config_file_content: String = fs::read_to_string(CONFIG_FILE).unwrap();
+    let config_file_content: String = fs::read_to_string(config_file_path).unwrap(); // TODO
     toml::from_str(&config_file_content).or(Err(AlchemistError::new(
         AlchemistErrorType::ConfigParseError,
         "Invalid configuration.",
     )))
+}
+
+pub fn set_cwd_to_config_dir(config_file_path: &PathBuf) -> Result<()> {
+    let config_location = config_file_path.parent().unwrap();
+    set_current_dir(config_location).or(Err(AlchemistError::new(
+        AlchemistErrorType::CurrentDirIsInvalid,
+        "Can not move to project root.",
+    )))?;
+    Ok(())
 }

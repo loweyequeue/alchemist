@@ -4,6 +4,7 @@ pub enum AlchemistErrorType {
     ConfigParseError,
     CommandFailedError,
     InvalidSerialTask,
+    CurrentDirIsInvalid,
 }
 
 impl ToString for AlchemistErrorType {
@@ -13,6 +14,7 @@ impl ToString for AlchemistErrorType {
             Self::ConfigParseError => "ConfigParseError",
             Self::CommandFailedError => "CommandFailedError",
             Self::InvalidSerialTask => "InvalidSerialTask",
+            Self::CurrentDirIsInvalid => "CurrentDirIsInvalid",
         }
         .to_string()
     }

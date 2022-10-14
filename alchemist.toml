@@ -10,6 +10,9 @@ args = ["install", "--path", "."]
 command = "cargo"
 args = ["clean"]
 
+[tasks.pwd]
+command = "pwd"
+
 [tasks.reinstall]
 serial_tasks = ["clean", "install"]
 
