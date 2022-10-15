@@ -7,6 +7,15 @@ pub enum AlchemistErrorType {
     CurrentDirIsInvalid,
 }
 
+impl AlchemistErrorType {
+    pub fn with_message<T: ToString>(self, message: T) -> AlchemistError {
+        AlchemistError {
+            error_type: self,
+            error_message: message.to_string(),
+        }
+    }
+}
+
 impl ToString for AlchemistErrorType {
     fn to_string(&self) -> String {
         match self {
