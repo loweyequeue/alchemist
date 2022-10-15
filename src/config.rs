@@ -6,7 +6,7 @@ use std::{collections::HashMap, fs};
 use serde::Deserialize;
 
 use crate::cli;
-use crate::error::{AlchemistError, AlchemistErrorType, Result};
+use crate::error::{AlchemistErrorType, Result};
 use crate::tasks::*;
 
 const CONFIG_FILE: &str = "alchemist.toml";

@@ -35,13 +35,4 @@ pub struct AlchemistError {
     pub error_message: String,
 }
 
-impl AlchemistError {
-    pub fn new<T: ToString>(error_type: AlchemistErrorType, error_message: T) -> AlchemistError {
-        AlchemistError {
-            error_type,
-            error_message: error_message.to_string(),
-        }
-    }
-}
-
 pub type Result<T> = std::result::Result<T, AlchemistError>;
