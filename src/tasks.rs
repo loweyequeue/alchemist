@@ -58,9 +58,9 @@ impl RunnableTask for AlchemistBasicTask {
         let mut child = match cmd.spawn() {
             Ok(child) => child,
             Err(_) => {
-                return Err(AlchemistErrorType::CommandFailedError.with_message(
+                return AlchemistErrorType::CommandFailedError.build_result(
                     format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run."))
-                )
+
             }
         };
         if let Ok(exit_code) = child.wait() {
@@ -68,16 +68,16 @@ impl RunnableTask for AlchemistBasicTask {
                 cli::ok(format!("Finished command {}", command_str));
                 Ok(())
             } else {
-                return Err( AlchemistErrorType::CommandFailedError.with_message(
+                return AlchemistErrorType::CommandFailedError.build_result(
                     format!(
                         "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code)."
                     ),
-                ));
+                );
             }
         } else {
-            return Err(AlchemistErrorType::CommandFailedError.with_message(format!(
+            return AlchemistErrorType::CommandFailedError.build_result(format!(
                 "Execution of basic task {task_name} with command `{command_str}` failed to start."
-            )));
+            ));
         }
     }
 }
@@ -93,10 +93,10 @@ impl RunnableTask for AlchemistSerialTasks {
             match config.tasks.get(t) {
                 Some(v) => v.run(t, config),
                 None => {
-                    return Err(AlchemistErrorType::InvalidSerialTask.with_message(format!(
+                    return AlchemistErrorType::InvalidSerialTask.build_result(format!(
                         "Serial task '{}' has an invalid subtask '{t}'",
                         task_name.to_string()
-                    )))
+                    ))
                 }
             }?;
         }
