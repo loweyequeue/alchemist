@@ -14,6 +14,13 @@ impl AlchemistErrorType {
             error_message: message.to_string(),
         }
     }
+
+    pub fn build_result<T, U: ToString>(self, message: U) -> Result<T> {
+        Err(AlchemistError {
+            error_type: self,
+            error_message: message.to_string(),
+        })
+    }
 }
 
 impl ToString for AlchemistErrorType {
