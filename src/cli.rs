@@ -1,9 +1,10 @@
 use colored::Colorize;
 
 pub const INFO: &'static str = "ℹ︎";
-pub const DEBUG: &'static str = "⌗";
 pub const ERROR: &'static str = "✘";
 pub const OK: &'static str = "✔︎";
+#[cfg(debug_assertions)]
+pub const DEBUG: &'static str = "⌗";
 
 fn message_prefix<T: ToString>(icon: T) -> String {
     format!("{}{}{}", "[".dimmed(), icon.to_string(), "]".dimmed())
@@ -38,7 +39,9 @@ pub fn info<T: ToString>(message: T) {
     )
 }
 
+#[allow(unused_variables)]
 pub fn debug<T: ToString>(message: T) {
+    #[cfg(debug_assertions)]
     println!(
         "{}{}{}",
         message_prefix(DEBUG.magenta().bold()),

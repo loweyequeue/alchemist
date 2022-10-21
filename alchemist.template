@@ -1,0 +1,9 @@
+[tasks.echo]
+command = "echo"
+args = ["hello", "world"]
+
+[tasks.pwd]
+command = "pwd"
+
+[tasks.both]
+serial_tasks = ["echo", "pwd"]

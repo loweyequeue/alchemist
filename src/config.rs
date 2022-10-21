@@ -9,7 +9,7 @@ use crate::cli;
 use crate::error::{AlchemistErrorType, Result};
 use crate::tasks::*;
 
-const CONFIG_FILE: &str = "alchemist.toml";
+pub const CONFIG_FILE: &str = "alchemist.toml";
 
 #[derive(Debug, Deserialize)]
 /// Contains the structure of the alchemist.toml file
@@ -45,7 +45,8 @@ pub fn locate_config() -> Result<PathBuf> {
 pub fn parse_config(config_file_path: &PathBuf) -> Result<AlchemistConfig> {
     cli::debug(format!("searching for {}", CONFIG_FILE));
 
-    let config_file_content: String = fs::read_to_string(config_file_path).unwrap(); // TODO
+    let config_file_content: String = fs::read_to_string(config_file_path)
+        .or(AlchemistErrorType::ConfigParseError.build_result("Could not read the config file"))?;
     toml::from_str(&config_file_content)
         .or(AlchemistErrorType::ConfigParseError.build_result("Invalid configuration."))
 }

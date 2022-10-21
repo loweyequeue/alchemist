@@ -1,9 +1,0 @@
-[tasks.hello_world]
-command = "echo"
-args = ["hello", "world"]
-
-[tasks.noargs]
-command = "pwd"
-
-[tasks.serial_demo]
-serial_tasks = ["hello_world", "pwd"]

@@ -5,6 +5,7 @@ pub enum AlchemistErrorType {
     CommandFailedError,
     InvalidSerialTask,
     CurrentDirIsInvalid,
+    CLIError,
 }
 
 impl AlchemistErrorType {
@@ -31,6 +32,7 @@ impl ToString for AlchemistErrorType {
             Self::CommandFailedError => "CommandFailedError",
             Self::InvalidSerialTask => "InvalidSerialTask",
             Self::CurrentDirIsInvalid => "CurrentDirIsInvalid",
+            Self::CLIError => "CLIError",
         }
         .to_string()
     }
