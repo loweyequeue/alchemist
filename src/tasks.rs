@@ -3,7 +3,7 @@ use std::process::Command;
 use crate::config::AlchemistConfig;
 use crate::error::{AlchemistErrorType, Result};
 
-use crate::cli;
+use crate::cli::terminal;
 
 use serde::Deserialize;
 pub trait RunnableTask {
@@ -52,9 +52,9 @@ impl RunnableTask for AlchemistBasicTask {
             cmd.args(args);
             format!("{} {}", &self.command, args.join(" "))
         } else {
-            format!("{}", &self.command)
+            self.command.to_string()
         };
-        cli::info(format!("Running command {}", command_str));
+        terminal::info(format!("Running command {}", command_str));
         let mut child = match cmd.spawn() {
             Ok(child) => child,
             Err(_) => {
@@ -65,26 +65,26 @@ impl RunnableTask for AlchemistBasicTask {
         };
         if let Ok(exit_code) = child.wait() {
             if exit_code.success() {
-                cli::ok(format!("Finished command {}", command_str));
+                terminal::ok(format!("Finished command {}", command_str));
                 Ok(())
             } else {
-                return AlchemistErrorType::CommandFailedError.build_result(
+                AlchemistErrorType::CommandFailedError.build_result(
                     format!(
                         "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code)."
                     ),
-                );
+                )
             }
         } else {
-            return AlchemistErrorType::CommandFailedError.build_result(format!(
+            AlchemistErrorType::CommandFailedError.build_result(format!(
                 "Execution of basic task {task_name} with command `{command_str}` failed to start."
-            ));
+            ))
         }
     }
 }
 
 impl RunnableTask for AlchemistSerialTasks {
     fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()> {
-        cli::info(format!(
+        terminal::info(format!(
             "Running serial task '{}' which is a collection of {:?}",
             task_name.to_string(),
             self.serial_tasks
@@ -100,7 +100,7 @@ impl RunnableTask for AlchemistSerialTasks {
                 }
             }?;
         }
-        cli::ok(format!("Finished serial task '{}'", task_name.to_string()));
+        terminal::ok(format!("Finished serial task '{}'", task_name.to_string()));
         Ok(())
     }
 }
@@ -120,9 +120,9 @@ pub enum AlchemistTaskType {
 
 impl RunnableTask for AlchemistTaskType {
     fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()> {
-        return match self {
-            AlchemistTaskType::AlchemistBasicTask(z) => z.run(task_name, &config),
-            AlchemistTaskType::AlchemistSerialTasks(z) => z.run(task_name, &config),
-        };
+        match self {
+            AlchemistTaskType::AlchemistBasicTask(z) => z.run(task_name, config),
+            AlchemistTaskType::AlchemistSerialTasks(z) => z.run(task_name, config),
+        }
     }
 }

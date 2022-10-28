@@ -1,10 +1,11 @@
 use colored::Colorize;
 
-pub const INFO: &'static str = "ℹ︎";
-pub const ERROR: &'static str = "✘";
-pub const OK: &'static str = "✔︎";
+pub const INFO: &str = "ℹ︎";
+pub const ERROR: &str = "✘";
+pub const OK: &str = "✔︎";
+pub const WARNING: &str = "‼︎";
 #[cfg(debug_assertions)]
-pub const DEBUG: &'static str = "⌗";
+pub const DEBUG: &str = "⌗";
 
 fn message_prefix<T: ToString>(icon: T) -> String {
     format!("{}{}{}", "[".dimmed(), icon.to_string(), "]".dimmed())
@@ -18,15 +19,23 @@ pub fn ok<T: ToString>(message: T) {
         message.to_string()
     );
 }
+pub fn warn<T: ToString>(message: T) {
+    println!(
+        "{}{}{}",
+        message_prefix(WARNING.yellow().bold()),
+        ": ".dimmed(),
+        message.to_string()
+    );
+}
 
 pub fn error(err: crate::error::AlchemistError) {
-    println!(
+    eprintln!(
         "{}{}{}{}{}",
         message_prefix(ERROR.red().bold()),
         "[".dimmed(),
         err.error_type.to_string().dimmed().italic(),
         "]: ".dimmed(),
-        err.error_message.to_string()
+        err.error_message
     )
 }
 

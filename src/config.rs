@@ -5,7 +5,7 @@ use std::{collections::HashMap, fs};
 
 use serde::Deserialize;
 
-use crate::cli;
+use crate::cli::terminal;
 use crate::error::{AlchemistErrorType, Result};
 use crate::tasks::*;
 
@@ -28,32 +28,48 @@ pub struct AlchemistConfig {
 }
 
 pub fn locate_config() -> Result<PathBuf> {
-    let workingdir = current_dir().or(AlchemistErrorType::CurrentDirIsInvalid
-        .build_result("The current directory does not exist or you have no permissions for it."))?;
+    let workingdir = current_dir().or_else(|_| {
+        AlchemistErrorType::CurrentDirIsInvalid
+            .build_result("The current directory does not exist or you have no permissions for it.")
+    })?;
 
     workingdir
         .ancestors()
         .map(|p| p.to_path_buf().join(CONFIG_FILE))
-        .filter(|c| c.exists() && c.is_file())
-        .next()
-        .ok_or(AlchemistErrorType::NoConfigFileError.with_message(format!(
-            "'{}' does not exist or is not a file.",
-            CONFIG_FILE
-        )))
+        .find(|p| p.exists() && p.is_file())
+        .ok_or_else(|| {
+            AlchemistErrorType::NoConfigFileError.with_message(format!(
+                "'{}' does not exist or is not a file.",
+                CONFIG_FILE
+            ))
+        })
+    // workingdir
+    //     .ancestors()
+    //     .map(|p| p.to_path_buf().join(CONFIG_FILE))
+    //     .filter(|c| c.exists() && c.is_file())
+    //     .next()
+    //     .ok_or(AlchemistErrorType::NoConfigFileError.with_message(format!(
+    //         "'{}' does not exist or is not a file.",
+    //         CONFIG_FILE
+    //     )))
 }
 
 pub fn parse_config(config_file_path: &PathBuf) -> Result<AlchemistConfig> {
-    cli::debug(format!("searching for {}", CONFIG_FILE));
+    terminal::debug(format!("searching for {}", CONFIG_FILE));
 
-    let config_file_content: String = fs::read_to_string(config_file_path)
-        .or(AlchemistErrorType::ConfigParseError.build_result("Could not read the config file"))?;
+    let config_file_content: String = fs::read_to_string(config_file_path).or_else(|_| {
+        AlchemistErrorType::ConfigParseError.build_result("Could not read the config file")
+    })?;
     toml::from_str(&config_file_content)
-        .or(AlchemistErrorType::ConfigParseError.build_result("Invalid configuration."))
+        .or_else(|_| AlchemistErrorType::ConfigParseError.build_result("Invalid configuration."))
 }
 
+// allow because we might reuse the PathBuf in the future
+#[allow(clippy::ptr_arg)]
 pub fn set_cwd_to_config_dir(config_file_path: &PathBuf) -> Result<()> {
     let config_location = config_file_path.parent().unwrap();
-    set_current_dir(config_location)
-        .or(AlchemistErrorType::CurrentDirIsInvalid.build_result("Can not move to project root."))?;
+    set_current_dir(config_location).or_else(|_| {
+        AlchemistErrorType::CurrentDirIsInvalid.build_result("Can not move to project root.")
+    })?;
     Ok(())
 }
