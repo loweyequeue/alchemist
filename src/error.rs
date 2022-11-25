@@ -9,14 +9,14 @@ pub enum AlchemistErrorType {
 }
 
 impl AlchemistErrorType {
-    pub fn with_message<T: ToString>(self, message: T) -> AlchemistError {
+    pub fn with_message<S: ToString>(self, message: S) -> AlchemistError {
         AlchemistError {
             error_type: self,
             error_message: message.to_string(),
         }
     }
 
-    pub fn build_result<T, U: ToString>(self, message: U) -> Result<T> {
+    pub fn build_result<T, S: ToString>(self, message: S) -> Result<T> {
         Err(AlchemistError {
             error_type: self,
             error_message: message.to_string(),

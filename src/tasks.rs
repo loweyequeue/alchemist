@@ -7,7 +7,7 @@ use crate::cli::terminal;
 
 use serde::Deserialize;
 pub trait RunnableTask {
-    fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()>;
+    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()>;
 }
 
 #[derive(Debug, Deserialize)]
@@ -45,7 +45,7 @@ pub struct AlchemistSerialTasks {
 }
 
 impl RunnableTask for AlchemistBasicTask {
-    fn run<T: ToString>(&self, task_name: T, _config: &AlchemistConfig) -> Result<()> {
+    fn run<S: ToString>(&self, task_name: S, _config: &AlchemistConfig) -> Result<()> {
         let task_name = task_name.to_string();
         let mut cmd = Command::new(&self.command);
         let command_str = if let Some(args) = &self.args {
@@ -55,52 +55,40 @@ impl RunnableTask for AlchemistBasicTask {
             self.command.to_string()
         };
         terminal::info(format!("Running command {}", command_str));
-        let mut child = match cmd.spawn() {
-            Ok(child) => child,
-            Err(_) => {
-                return AlchemistErrorType::CommandFailedError.build_result(
-                    format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run."))
-
-            }
-        };
-        if let Ok(exit_code) = child.wait() {
-            if exit_code.success() {
-                terminal::ok(format!("Finished command {}", command_str));
-                Ok(())
-            } else {
-                AlchemistErrorType::CommandFailedError.build_result(
-                    format!(
-                        "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code)."
-                    ),
-                )
-            }
-        } else {
-            AlchemistErrorType::CommandFailedError.build_result(format!(
-                "Execution of basic task {task_name} with command `{command_str}` failed to start."
-            ))
+        let mut child = cmd.spawn().or_else(|_| {
+            AlchemistErrorType::CommandFailedError.build_result(
+                format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run.")
+            )
+        })?;
+        let exit_code = child.wait().or_else(|_| AlchemistErrorType::CommandFailedError.build_result( format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")))?;
+        if !exit_code.success() {
+            return AlchemistErrorType::CommandFailedError.build_result(
+                format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")
+            );
         }
+        terminal::ok(format!("Finished command {}", command_str));
+        Ok(())
     }
 }
 
 impl RunnableTask for AlchemistSerialTasks {
-    fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()> {
+    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()> {
+        let task_name = task_name.to_string();
         terminal::info(format!(
             "Running serial task '{}' which is a collection of {:?}",
-            task_name.to_string(),
-            self.serial_tasks
+            task_name, self.serial_tasks
         ));
-        for t in &self.serial_tasks {
-            match config.tasks.get(t) {
-                Some(v) => v.run(t, config),
+        for sub_task_name in &self.serial_tasks {
+            match config.tasks.get(sub_task_name) {
+                Some(task) => task.run(sub_task_name, config),
                 None => {
                     return AlchemistErrorType::InvalidSerialTask.build_result(format!(
-                        "Serial task '{}' has an invalid subtask '{t}'",
-                        task_name.to_string()
+                        "Serial task '{task_name}' has an invalid subtask '{sub_task_name}'"
                     ))
                 }
             }?;
         }
-        terminal::ok(format!("Finished serial task '{}'", task_name.to_string()));
+        terminal::ok(format!("Finished serial task '{task_name}'"));
         Ok(())
     }
 }
@@ -121,8 +109,8 @@ pub enum AlchemistTaskType {
 impl RunnableTask for AlchemistTaskType {
     fn run<T: ToString>(&self, task_name: T, config: &AlchemistConfig) -> Result<()> {
         match self {
-            AlchemistTaskType::AlchemistBasicTask(z) => z.run(task_name, config),
-            AlchemistTaskType::AlchemistSerialTasks(z) => z.run(task_name, config),
+            AlchemistTaskType::AlchemistBasicTask(task) => task.run(task_name, config),
+            AlchemistTaskType::AlchemistSerialTasks(task) => task.run(task_name, config),
         }
     }
 }

@@ -7,11 +7,11 @@ pub const WARNING: &str = "‼︎";
 #[cfg(debug_assertions)]
 pub const DEBUG: &str = "⌗";
 
-fn message_prefix<T: ToString>(icon: T) -> String {
+fn message_prefix<S: ToString>(icon: S) -> String {
     format!("{}{}{}", "[".dimmed(), icon.to_string(), "]".dimmed())
 }
 
-pub fn ok<T: ToString>(message: T) {
+pub fn ok<S: ToString>(message: S) {
     println!(
         "{}{}{}",
         message_prefix(OK.green().bold()),
@@ -19,7 +19,7 @@ pub fn ok<T: ToString>(message: T) {
         message.to_string()
     );
 }
-pub fn warn<T: ToString>(message: T) {
+pub fn warn<S: ToString>(message: S) {
     println!(
         "{}{}{}",
         message_prefix(WARNING.yellow().bold()),
@@ -39,7 +39,7 @@ pub fn error(err: crate::error::AlchemistError) {
     )
 }
 
-pub fn info<T: ToString>(message: T) {
+pub fn info<S: ToString>(message: S) {
     println!(
         "{}{}{}",
         message_prefix(INFO.cyan().bold()),
@@ -49,7 +49,7 @@ pub fn info<T: ToString>(message: T) {
 }
 
 #[allow(unused_variables)]
-pub fn debug<T: ToString>(message: T) {
+pub fn debug<S: ToString>(message: S) {
     #[cfg(debug_assertions)]
     println!(
         "{}{}{}",

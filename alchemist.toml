@@ -10,14 +10,8 @@ args = ["install", "--path", "."]
 command = "cargo"
 args = ["clean"]
 
-[tasks.pwd]
-command = "pwd"
-
 [tasks.reinstall]
 serial_tasks = ["clean", "install"]
 
 [tasks.rebuild]
 serial_tasks = ["clean", "build"]
-
-[tasks.fail]
-serial_tasks = ["soup_machine"]

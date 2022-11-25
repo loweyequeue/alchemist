@@ -32,8 +32,8 @@ pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {
     set_cwd_to_config_dir(&config_file_path)?;
 
     for t in tasks {
-        if let Some(v) = alchemist_config.tasks.get(&t) {
-            v.run(t, &alchemist_config)?
+        if let Some(task) = alchemist_config.tasks.get(&t) {
+            task.run(t, &alchemist_config)?
         }
     }
     Ok(())
