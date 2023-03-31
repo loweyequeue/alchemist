@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 
 use crate::cli::terminal;
 use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
@@ -17,6 +17,8 @@ pub(crate) enum SubCommands {
     List {},
     #[command(about = "Run list of given tasks")]
     Run { tasks: Vec<String> },
+    #[command(hide = true)]
+    ShellComplete,
 }
 
 #[derive(Parser, Debug)]
@@ -66,6 +68,23 @@ pub(crate) fn create_template_config(target: Option<PathBuf>) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub(crate) fn generate_completions() {
+    let home = PathBuf::from(std::env::var("HOME").expect("could not determine home dir"));
+    let completion_dir = home.join(".config").join("fish").join("completions");
+
+    if let Err(e) = std::fs::create_dir_all(&completion_dir) {
+        panic!("Error: {}", e);
+    }
+    let mut cmd = CliArgs::command();
+    clap_complete::generate_to(
+        clap_complete::Shell::Fish,
+        &mut cmd,
+        "alchemist",
+        completion_dir,
+    )
+    .expect("could not write completions file");
 }
 
 pub(crate) fn list_available_tasks() -> Result<()> {

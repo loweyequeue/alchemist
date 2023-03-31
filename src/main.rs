@@ -22,6 +22,7 @@ fn main() {
     println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
     let args = CliArgs::parse();
     match args.command {
+        SubCommands::ShellComplete => interface::generate_completions(),
         SubCommands::Run { tasks } => match interface::run_tasks(tasks) {
             Ok(_) => terminal::ok("Finished running all given tasks."),
             Err(e) => terminal::error(e),

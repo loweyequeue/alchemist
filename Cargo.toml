@@ -8,6 +8,7 @@ description = "program does make but better veri gud 10/9" # TODO
 
 [dependencies]
 clap = { version = "4.0.18", features = ["derive"] }
+clap_complete = "4.2.0"
 colored = "2.0.0"
 serde = { version = "1.0.144", features = ["derive"] }
 toml = "0.5.9"
