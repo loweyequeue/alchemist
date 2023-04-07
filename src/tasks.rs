@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::process::Command;
 
 use crate::config::AlchemistConfig;
@@ -24,6 +25,7 @@ pub struct AlchemistBasicTask {
     command: String,
     #[allow(dead_code)]
     args: Option<Vec<String>>,
+    env: Option<HashMap<String, String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,6 +50,11 @@ impl RunnableTask for AlchemistBasicTask {
     fn run<S: ToString>(&self, task_name: S, _config: &AlchemistConfig) -> Result<()> {
         let task_name = task_name.to_string();
         let mut cmd = Command::new(&self.command);
+
+        if let Some(env_var) = &self.env {
+            cmd.envs(env_var);
+        }
+
         let command_str = if let Some(args) = &self.args {
             cmd.args(args);
             format!("{} {}", &self.command, args.join(" "))

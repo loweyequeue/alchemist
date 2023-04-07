@@ -7,3 +7,8 @@ command = "pwd"
 
 [tasks.both]
 serial_tasks = ["echo", "pwd"]
+
+[tasks.env_example]
+command = "sh"
+args = ["-c", "echo FOO=$FOO"]
+env = { FOO = "BAR" }
