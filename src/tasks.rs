@@ -26,6 +26,7 @@ pub struct AlchemistBasicTask {
     #[allow(dead_code)]
     args: Option<Vec<String>>,
     env: Option<HashMap<String, String>>,
+    pub hide: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -44,6 +45,7 @@ pub struct AlchemistBasicTask {
 pub struct AlchemistSerialTasks {
     #[allow(dead_code)]
     serial_tasks: Vec<String>,
+    hide: Option<bool>,
 }
 
 impl RunnableTask for AlchemistBasicTask {
@@ -111,6 +113,15 @@ impl RunnableTask for AlchemistSerialTasks {
 pub enum AlchemistTaskType {
     AlchemistBasicTask(AlchemistBasicTask),
     AlchemistSerialTasks(AlchemistSerialTasks),
+}
+
+impl AlchemistTaskType {
+    pub fn is_shown(&self) -> bool {
+        match self {
+            Self::AlchemistSerialTasks(v) => !v.hide.unwrap_or(false),
+            Self::AlchemistBasicTask(v) => !v.hide.unwrap_or(false),
+        }
+    }
 }
 
 impl RunnableTask for AlchemistTaskType {

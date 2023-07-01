@@ -7,7 +7,7 @@ use clap::{CommandFactory, Parser, Subcommand};
 use crate::cli::terminal;
 use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
 use crate::error::{AlchemistErrorType, Result};
-use crate::tasks::RunnableTask;
+use crate::tasks::{RunnableTask};
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum SubCommands {
@@ -91,7 +91,14 @@ pub(crate) fn list_available_tasks() -> Result<()> {
     let config_file_path = locate_config()?;
     let alchemist_config = parse_config(&config_file_path)?;
 
-    let mut task_names = Vec::from_iter(alchemist_config.tasks.keys());
+    let mut task_names = alchemist_config
+        .tasks
+        .iter()
+        .filter(|(_, v)| v.is_shown())
+        .map(|(k, _)| k)
+        .collect::<Vec<&String>>();
+
+    // let mut task_names = Vec::from_iter(alchemist_config.tasks.keys());
 
     if task_names.is_empty() {
         terminal::warn("No tasks configured!");

@@ -12,3 +12,8 @@ serial_tasks = ["echo", "pwd"]
 command = "sh"
 args = ["-c", "echo FOO=$FOO"]
 env = { FOO = "BAR" }
+
+[tasks.hidden]
+command = "echo"
+args = ["I am sneaky"]
+hide = true
