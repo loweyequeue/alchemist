@@ -8,6 +8,9 @@ command = "pwd"
 [tasks.both]
 serial_tasks = ["echo", "pwd"]
 
+[tasks.both_at_the_same_time]
+parallel_tasks = ["echo", "pwd"]
+
 [tasks.env_example]
 command = "sh"
 args = ["-c", "echo FOO=$FOO"]

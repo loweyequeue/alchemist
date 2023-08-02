@@ -11,7 +11,7 @@ use crate::tasks::*;
 
 pub const CONFIG_FILE: &str = "alchemist.toml";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 /// Contains the structure of the alchemist.toml file
 ///
 /// Reads a toml file like the following:
