@@ -51,9 +51,9 @@ pub struct AlchemistSerialTasks {
 
 #[derive(Debug, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
-/// Alchemist SerialTasks type can be a set of multiple basic tasks
+/// Alchemist ParallelTasks type can be a set of multiple basic tasks
 ///
-/// These tasks are executed in the given order
+/// These tasks are executed in parallel.
 ///
 ///
 /// Example:
@@ -122,6 +122,7 @@ impl RunnableTask for AlchemistSerialTasks {
     }
 }
 
+// TODO: Error handling for failed parallel tasts & stdout/-err (think...)
 impl RunnableTask for AlchemistParallelTasks {
     fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()> {
         let task_name = task_name.to_string();
