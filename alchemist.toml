@@ -14,7 +14,6 @@ args = ["shell-complete"]
 [tasks.install]
 serial_tasks = ["cargo_install", "generate_shell_completions"]
 
-
 [tasks.clean]
 command = "cargo"
 args = ["clean"]

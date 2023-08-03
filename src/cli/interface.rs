@@ -6,8 +6,8 @@ use clap::{CommandFactory, Parser, Subcommand};
 
 use crate::cli::terminal;
 use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
-use crate::error::{AlchemistErrorType, Result};
-use crate::tasks::{RunnableTask};
+use crate::error::{AlchemistError, Result};
+use crate::tasks::RunnableTask;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum SubCommands {
@@ -44,27 +44,29 @@ pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {
 pub(crate) fn create_template_config(target: Option<PathBuf>) -> Result<()> {
     let target_dir = target.unwrap_or_else(|| Path::new(".").to_path_buf());
     if !(target_dir.exists() && target_dir.is_dir()) {
-        return AlchemistErrorType::CLIError.build_result(format!(
+        return Err(AlchemistError::CLIError(format!(
             "Template init dir '{}' does not exist (or is not a directory).",
             target_dir.display()
-        ));
+        )));
     }
 
     let template_path = target_dir.join(CONFIG_FILE);
     if template_path.exists() {
-        return AlchemistErrorType::CLIError.build_result(format!(
+        return Err(AlchemistError::CLIError(format!(
             "Refusing to create config file, since '{}' already exists!",
             template_path.display()
-        ));
+        )));
     }
 
     let template_content = include_bytes!("alchemist.template");
     if let Ok(mut template_file) = File::create(template_path) {
-        template_file.write_all(template_content).or_else(|_| {
-            AlchemistErrorType::CLIError.build_result("Could not write template file.")
-        })?;
+        template_file
+            .write_all(template_content)
+            .map_err(|e| AlchemistError::CLIError(e.to_string()))?;
     } else {
-        return AlchemistErrorType::CLIError.build_result("Could not create template file.");
+        return Err(AlchemistError::CLIError(
+            "Could not create template file.".into(),
+        ));
     }
 
     Ok(())

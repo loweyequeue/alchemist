@@ -33,9 +33,9 @@ pub fn error(err: crate::error::AlchemistError) {
         "{}{}{}{}{}",
         message_prefix(ERROR.red().bold()),
         "[".dimmed(),
-        err.error_type.to_string().dimmed().italic(),
+        err.kind().dimmed().italic(),
         "]: ".dimmed(),
-        err.error_message
+        err.inner()
     )
 }
 

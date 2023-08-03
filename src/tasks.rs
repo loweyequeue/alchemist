@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::process::Command;
 
 use crate::config::AlchemistConfig;
-use crate::error::{AlchemistErrorType, Result};
+use crate::error::{AlchemistError, Result};
 
 use crate::cli::terminal;
 
@@ -84,16 +84,16 @@ impl RunnableTask for AlchemistBasicTask {
             self.command.to_string()
         };
         terminal::info(format!("Running command {}", command_str));
-        let mut child = cmd.spawn().or_else(|_| {
-            AlchemistErrorType::CommandFailedError.build_result(
-                format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run.")
-            )
-        })?;
-        let exit_code = child.wait().or_else(|_| AlchemistErrorType::CommandFailedError.build_result( format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")))?;
+        let mut child = cmd
+            .spawn()
+            .map_err(|e| AlchemistError::CommandFailedError(e.to_string()))?;
+        let exit_code = child
+            .wait()
+            .map_err(|e| AlchemistError::CommandFailedError(e.to_string()))?;
         if !exit_code.success() {
-            return AlchemistErrorType::CommandFailedError.build_result(
+            return Err(AlchemistError::CommandFailedError(
                 format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")
-            );
+            ));
         }
         terminal::ok(format!("Finished command {}", command_str));
         Ok(())
@@ -111,9 +111,9 @@ impl RunnableTask for AlchemistSerialTasks {
             match config.tasks.get(sub_task_name) {
                 Some(task) => task.run(sub_task_name, config),
                 None => {
-                    return AlchemistErrorType::InvalidSerialTask.build_result(format!(
+                    return Err(AlchemistError::InvalidSerialTask(format!(
                         "Serial task '{task_name}' has an invalid subtask '{sub_task_name}'"
-                    ))
+                    )));
                 }
             }?;
         }
@@ -145,9 +145,9 @@ impl RunnableTask for AlchemistParallelTasks {
                     Ok(())
                 }
                 None => {
-                    return AlchemistErrorType::InvalidSerialTask.build_result(format!(
+                    return Err(AlchemistError::InvalidSerialTask(format!(
                         "Parallel task '{task_name}' has an invalid subtask '{sub_task_name}'"
-                    ))
+                    )))
                 }
             }?;
         }
