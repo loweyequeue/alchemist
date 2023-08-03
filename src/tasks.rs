@@ -151,8 +151,13 @@ impl RunnableTask for AlchemistParallelTasks {
                 }
             }?;
         }
-        for job in background_jobs {
-            job.join().expect("Could not join thread??")?;
+        // Here we join all threads and handle results later
+        for result in background_jobs
+            .into_iter()
+            .map(|h| h.join().expect("Can not join thread"))
+        {
+            // Here we propogate the first error if any
+            result?;
         }
         terminal::ok(format!("Finished parallel task '{task_name}'"));
         Ok(())
