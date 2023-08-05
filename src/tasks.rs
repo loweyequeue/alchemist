@@ -152,15 +152,24 @@ impl RunnableTask for AlchemistParallelTasks {
             }?;
         }
         // Here we join all threads and handle results later
+        let mut has_error = false;
         for result in background_jobs
             .into_iter()
             .map(|h| h.join().expect("Can not join thread"))
+            .collect::<Vec<Result<()>>>()
         {
-            // Here we propogate the first error if any
-            result?;
+            if let Err(e) = result {
+                terminal::error(e);
+                has_error = true;
+            }
         }
-        terminal::ok(format!("Finished parallel task '{task_name}'"));
-        Ok(())
+        if has_error {
+            Err(AlchemistErrorType::CommandFailedError
+                .with_message("One or more errors occoured in parallel tasks"))
+        } else {
+            terminal::ok(format!("Finished parallel task '{task_name}'"));
+            Ok(())
+        }
     }
 }
 
