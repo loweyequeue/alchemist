@@ -11,7 +11,7 @@ pub trait RunnableTask {
     fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()>;
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 /// Alchemist BasicTask type is a simple task with a command and optional args
 /// Example:
@@ -29,7 +29,7 @@ pub struct AlchemistBasicTask {
     pub hide: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(deny_unknown_fields)]
 /// Alchemist SerialTasks type can be a set of multiple basic tasks
 ///
@@ -39,12 +39,32 @@ pub struct AlchemistBasicTask {
 /// Example:
 /// ```
 /// [tasks.my_task]
-/// sub_recipes = ["my_other_task1", "my_other_task2"]
+/// serial_tasks = ["my_other_task1", "my_other_task2"]
+/// hide = false
 ///
 /// ```
 pub struct AlchemistSerialTasks {
     #[allow(dead_code)]
     serial_tasks: Vec<String>,
+    hide: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+/// Alchemist ParallelTasks type can be a set of multiple basic tasks
+///
+/// These tasks are executed in parallel.
+///
+///
+/// Example:
+/// ```
+/// [tasks.my_task]
+/// serial_tasks = ["my_other_task1", "my_other_task2"]
+/// hide = false
+///
+/// ```
+pub struct AlchemistParallelTasks {
+    parallel_tasks: Vec<String>,
     hide: Option<bool>,
 }
 
@@ -102,7 +122,58 @@ impl RunnableTask for AlchemistSerialTasks {
     }
 }
 
-#[derive(Debug, Deserialize)]
+// TODO: Error handling for failed parallel tasts & stdout/-err (think...)
+impl RunnableTask for AlchemistParallelTasks {
+    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()> {
+        let task_name = task_name.to_string();
+        terminal::info(format!(
+            "Running parallel task '{}' which is a collection of {:?}",
+            task_name, self.parallel_tasks
+        ));
+        let mut background_jobs = Vec::<std::thread::JoinHandle<Result<()>>>::new();
+        for sub_task_name in &self.parallel_tasks {
+            match config.tasks.get(sub_task_name) {
+                Some(task) => {
+                    let ctask = task.clone();
+                    let cfg = config.clone();
+                    let name = sub_task_name.clone();
+                    background_jobs.push(std::thread::spawn(move || -> Result<()> {
+                        terminal::info(format!("starting parallel task: {}", name));
+                        ctask.run(name, &cfg)?;
+                        Ok(())
+                    }));
+                    Ok(())
+                }
+                None => {
+                    return AlchemistErrorType::InvalidSerialTask.build_result(format!(
+                        "Parallel task '{task_name}' has an invalid subtask '{sub_task_name}'"
+                    ))
+                }
+            }?;
+        }
+        // Here we join all threads and handle results later
+        let mut has_error = false;
+        for result in background_jobs
+            .into_iter()
+            .map(|h| h.join().expect("Can not join thread"))
+            .collect::<Vec<Result<()>>>()
+        {
+            if let Err(e) = result {
+                terminal::error(e);
+                has_error = true;
+            }
+        }
+        if has_error {
+            Err(AlchemistErrorType::CommandFailedError
+                .with_message("One or more errors occoured in parallel tasks"))
+        } else {
+            terminal::ok(format!("Finished parallel task '{task_name}'"));
+            Ok(())
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
 #[serde(untagged)]
 /// An enum of multiple variations of tasks within the alchemist.toml
 ///
@@ -113,13 +184,15 @@ impl RunnableTask for AlchemistSerialTasks {
 pub enum AlchemistTaskType {
     AlchemistBasicTask(AlchemistBasicTask),
     AlchemistSerialTasks(AlchemistSerialTasks),
+    AlchemistParallelTasks(AlchemistParallelTasks),
 }
 
 impl AlchemistTaskType {
     pub fn is_shown(&self) -> bool {
         match self {
-            Self::AlchemistSerialTasks(v) => !v.hide.unwrap_or(false),
             Self::AlchemistBasicTask(v) => !v.hide.unwrap_or(false),
+            Self::AlchemistSerialTasks(v) => !v.hide.unwrap_or(false),
+            Self::AlchemistParallelTasks(v) => !v.hide.unwrap_or(false),
         }
     }
 }
@@ -129,6 +202,7 @@ impl RunnableTask for AlchemistTaskType {
         match self {
             AlchemistTaskType::AlchemistBasicTask(task) => task.run(task_name, config),
             AlchemistTaskType::AlchemistSerialTasks(task) => task.run(task_name, config),
+            AlchemistTaskType::AlchemistParallelTasks(task) => task.run(task_name, config),
         }
     }
 }
