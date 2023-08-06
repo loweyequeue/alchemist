@@ -138,7 +138,6 @@ impl RunnableTask for AlchemistParallelTasks {
                     let cfg = config.clone();
                     let name = sub_task_name.clone();
                     background_jobs.push(std::thread::spawn(move || -> Result<()> {
-                        terminal::info(format!("starting parallel task: {}", name));
                         ctask.run(name, &cfg)?;
                         Ok(())
                     }));
