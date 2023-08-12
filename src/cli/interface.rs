@@ -3,10 +3,11 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use clap::{CommandFactory, Parser, Subcommand};
+use oh_no::ResultContext;
 
 use crate::cli::terminal;
 use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
-use crate::error::{AlchemistErrorType, Result};
+use crate::error::{AlchemistError, Result};
 use crate::tasks::RunnableTask;
 
 #[derive(Subcommand, Debug)]
@@ -59,14 +60,10 @@ pub(crate) fn create_template_config(target: Option<PathBuf>) -> Result<()> {
     }
 
     let template_content = include_bytes!("alchemist.template");
-    if let Ok(mut template_file) = File::create(template_path) {
-        template_file.write_all(template_content).or_else(|_| {
-            AlchemistErrorType::CLIError.build_result("Could not write template file.")
-        })?;
-    } else {
-        return AlchemistErrorType::CLIError.build_result("Could not create template file.");
-    }
-
+    let template_file = File::create(template_path).error_msg("Could not create template file.")?;
+    template_file
+        .write_all(template_content)
+        .error_msg("Could not write template file.")?;
     Ok(())
 }
 

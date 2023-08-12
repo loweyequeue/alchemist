@@ -1,47 +1,41 @@
-#[derive(Debug, PartialEq, Eq)]
-pub enum AlchemistErrorType {
-    NoConfigFileError,
-    ConfigParseError,
-    CommandFailedError,
-    InvalidSerialTask,
-    CurrentDirIsInvalid,
-    CLIError,
-}
+use std::fmt::Display;
 
-impl AlchemistErrorType {
-    pub fn with_message<S: ToString>(self, message: S) -> AlchemistError {
-        AlchemistError {
-            error_type: self,
-            error_message: message.to_string(),
-        }
-    }
-
-    pub fn build_result<T, S: ToString>(self, message: S) -> Result<T> {
-        Err(AlchemistError {
-            error_type: self,
-            error_message: message.to_string(),
-        })
-    }
-}
-
-impl ToString for AlchemistErrorType {
-    fn to_string(&self) -> String {
-        match self {
-            Self::NoConfigFileError => "NoConfigFileError",
-            Self::ConfigParseError => "ConfigParseError",
-            Self::CommandFailedError => "CommandFailedError",
-            Self::InvalidSerialTask => "InvalidSerialTask",
-            Self::CurrentDirIsInvalid => "CurrentDirIsInvalid",
-            Self::CLIError => "CLIError",
-        }
-        .to_string()
-    }
-}
+use oh_no::{from_err, ErrorContext, ResultContext};
 
 #[derive(Debug)]
-pub struct AlchemistError {
-    pub error_type: AlchemistErrorType,
-    pub error_message: String,
+pub struct AssertionError(pub String);
+
+impl Display for AssertionError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
 }
+
+// impl<T> From<AssertionError> for Result<T> {
+//     fn from(value: AssertionError) -> Self {
+//         Err(AlchemistError::AssertionError(ErrorContext(value, None)))
+//     }
+// }
+
+impl<T> From<AssertionError> for Result<T> {
+    fn from(value: AssertionError) -> Self {
+        Err(value.into())
+    }
+}
+
+impl std::error::Error for AssertionError {}
+
+#[derive(Debug)]
+pub enum AlchemistError {
+    IOError(ErrorContext<std::io::Error>),
+    AssertionError(ErrorContext<AssertionError>),
+}
+
+from_err!(std::io::Error, AlchemistError, AlchemistError::IOError);
+from_err!(
+    AssertionError,
+    AlchemistError,
+    AlchemistError::AssertionError
+);
 
 pub type Result<T> = std::result::Result<T, AlchemistError>;

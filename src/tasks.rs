@@ -2,10 +2,11 @@ use std::collections::HashMap;
 use std::process::Command;
 
 use crate::config::AlchemistConfig;
-use crate::error::{AlchemistErrorType, Result};
+use crate::error::{AlchemistError, AssertionError, Result};
 
 use crate::cli::terminal;
 
+use oh_no::ResultContext;
 use serde::Deserialize;
 pub trait RunnableTask {
     fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()>;
@@ -84,16 +85,13 @@ impl RunnableTask for AlchemistBasicTask {
             self.command.to_string()
         };
         terminal::info(format!("Running command {}", command_str));
-        let mut child = cmd.spawn().or_else(|_| {
-            AlchemistErrorType::CommandFailedError.build_result(
-                format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run.")
-            )
-        })?;
-        let exit_code = child.wait().or_else(|_| AlchemistErrorType::CommandFailedError.build_result( format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")))?;
+        let mut child = cmd.spawn().error_msg(format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run."))?;
+        let exit_code = child.wait().error_msg(format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code)."))?;
+
         if !exit_code.success() {
-            return AlchemistErrorType::CommandFailedError.build_result(
+            return AssertionError(
                 format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")
-            );
+            ).into();
         }
         terminal::ok(format!("Finished command {}", command_str));
         Ok(())
@@ -108,14 +106,13 @@ impl RunnableTask for AlchemistSerialTasks {
             task_name, self.serial_tasks
         ));
         for sub_task_name in &self.serial_tasks {
-            match config.tasks.get(sub_task_name) {
-                Some(task) => task.run(sub_task_name, config),
-                None => {
-                    return AlchemistErrorType::InvalidSerialTask.build_result(format!(
-                        "Serial task '{task_name}' has an invalid subtask '{sub_task_name}'"
-                    ))
-                }
-            }?;
+            let task = config.tasks.get(sub_task_name).ok_or::<AlchemistError>(
+                AssertionError(format!(
+                    "Serial task '{task_name}' has an invalid subtask '{sub_task_name}'"
+                ))
+                .into(),
+            )?;
+            task.run(sub_task_name, config)?
         }
         terminal::ok(format!("Finished serial task '{task_name}'"));
         Ok(())
