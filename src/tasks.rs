@@ -121,13 +121,13 @@ impl RunnableTask for AlchemistSerialTasks {
 
 // TODO: Error handling for failed parallel tasts & stdout/-err (think...)
 impl RunnableTask for AlchemistParallelTasks {
-    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()> {
+    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> crate::error::Result<()> {
         let task_name = task_name.to_string();
         terminal::info(format!(
             "Running parallel task '{}' which is a collection of {:?}",
             task_name, self.parallel_tasks
         ));
-        let mut background_jobs = Vec::<std::thread::JoinHandle<Result<()>>>::new();
+        let mut background_jobs = Vec::<std::thread::JoinHandle<crate::error::Result<()>>>::new();
         for sub_task_name in &self.parallel_tasks {
             match config.tasks.get(sub_task_name) {
                 Some(task) => {
@@ -140,11 +140,10 @@ impl RunnableTask for AlchemistParallelTasks {
                     }));
                     Ok(())
                 }
-                None => {
-                    return AlchemistErrorType::InvalidSerialTask.build_result(format!(
-                        "Parallel task '{task_name}' has an invalid subtask '{sub_task_name}'"
-                    ))
-                }
+                None => AssertionError(format!(
+                    "Parallel task '{task_name}' has an invalid subtask '{sub_task_name}'"
+                ))
+                .into(),
             }?;
         }
         // Here we join all threads and handle results later
@@ -160,8 +159,7 @@ impl RunnableTask for AlchemistParallelTasks {
             }
         }
         if has_error {
-            Err(AlchemistErrorType::CommandFailedError
-                .with_message("One or more errors occoured in parallel tasks"))
+            AssertionError("One or more errors occoured in parallel tasks".into()).into()
         } else {
             terminal::ok(format!("Finished parallel task '{task_name}'"));
             Ok(())

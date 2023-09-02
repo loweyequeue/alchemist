@@ -7,7 +7,7 @@ use oh_no::ResultContext;
 
 use crate::cli::terminal;
 use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
-use crate::error::{AlchemistError, Result};
+use crate::error::{AssertionError, Result};
 use crate::tasks::RunnableTask;
 
 #[derive(Subcommand, Debug)]
@@ -45,18 +45,20 @@ pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {
 pub(crate) fn create_template_config(target: Option<PathBuf>) -> Result<()> {
     let target_dir = target.unwrap_or_else(|| Path::new(".").to_path_buf());
     if !(target_dir.exists() && target_dir.is_dir()) {
-        return AlchemistErrorType::CLIError.build_result(format!(
+        return AssertionError(format!(
             "Template init dir '{}' does not exist (or is not a directory).",
             target_dir.display()
-        ));
+        ))
+        .into();
     }
 
     let template_path = target_dir.join(CONFIG_FILE);
     if template_path.exists() {
-        return AlchemistErrorType::CLIError.build_result(format!(
+        return AssertionError(format!(
             "Refusing to create config file, since '{}' already exists!",
             template_path.display()
-        ));
+        ))
+        .into();
     }
 
     let template_content = include_bytes!("alchemist.template");

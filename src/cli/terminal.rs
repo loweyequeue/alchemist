@@ -11,6 +11,11 @@ fn message_prefix<S: ToString>(icon: S) -> String {
     format!("{}{}{}", "[".dimmed(), icon.to_string(), "]".dimmed())
 }
 
+// TODO: FIXME: Continue here, colored lib needs to go away
+// make custom basic color stuff (maybe as const fns)
+// MAYBE: check if owo-colors lib is better
+let ERROR_PREFIX: String = message_prefix(ERROR.red().bold());
+
 pub fn ok<S: ToString>(message: S) {
     println!(
         "{}{}{}",
@@ -29,14 +34,7 @@ pub fn warn<S: ToString>(message: S) {
 }
 
 pub fn error(err: crate::error::AlchemistError) {
-    eprintln!(
-        "{}{}{}{}{}",
-        message_prefix(ERROR.red().bold()),
-        "[".dimmed(),
-        err.error_type.to_string().dimmed().italic(),
-        "]: ".dimmed(),
-        err.error_message
-    )
+    eprintln!("{}", err)
 }
 
 pub fn info<S: ToString>(message: S) {
