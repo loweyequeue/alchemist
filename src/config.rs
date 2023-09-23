@@ -7,7 +7,7 @@ use oh_no::ResultContext;
 use serde::Deserialize;
 
 use crate::cli::terminal;
-use crate::error::{AlchemistError, AssertionError, Result};
+use crate::error::{AssertionError, Result};
 use crate::tasks::*;
 
 pub const CONFIG_FILE: &str = "alchemist.toml";
@@ -66,11 +66,9 @@ pub fn parse_config(config_file_path: &PathBuf) -> Result<AlchemistConfig> {
 // allow because we might reuse the PathBuf in the future
 #[allow(clippy::ptr_arg)]
 pub fn set_cwd_to_config_dir(config_file_path: &PathBuf) -> Result<()> {
-    // let config_location = config_file_path.parent().ok_or_else(|| {
-    //     AlchemistErrorType::CurrentDirIsInvalid.with_message("No access to config parent directory")
-    // })?;
-    // set_current_dir(config_location).or_else(|_| {
-    //     AlchemistErrorType::CurrentDirIsInvalid.build_result("Can not move to project root.")
-    // })?;
+    let config_location = config_file_path
+        .parent()
+        .ok_or_else(|| AssertionError(String::from("No access to config parent directory")))?;
+    set_current_dir(config_location).error_msg("Can not move to project root.")?;
     Ok(())
 }

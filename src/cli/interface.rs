@@ -62,7 +62,8 @@ pub(crate) fn create_template_config(target: Option<PathBuf>) -> Result<()> {
     }
 
     let template_content = include_bytes!("alchemist.template");
-    let template_file = File::create(template_path).error_msg("Could not create template file.")?;
+    let mut template_file =
+        File::create(template_path).error_msg("Could not create template file.")?;
     template_file
         .write_all(template_content)
         .error_msg("Could not write template file.")?;

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use colored::Colorize;
 
-use oh_no::{from_err, ErrorContext, ResultContext};
+use oh_no::{from_err, ErrorContext};
 
 #[derive(Debug)]
 pub struct AssertionError(pub String);
@@ -39,7 +39,7 @@ impl std::fmt::Display for AlchemistError {
         write!(
             f,
             "{}{}{}{}{}",
-            crate::cli::terminal::ERROR_PREFIX,
+            crate::cli::terminal::error_prefix(),
             "[".dimmed(),
             variant.dimmed().italic(),
             "]: ".dimmed(),
