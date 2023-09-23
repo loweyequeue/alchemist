@@ -14,7 +14,12 @@ fn message_prefix<S: ToString>(icon: S) -> String {
 // TODO: FIXME: Continue here, colored lib needs to go away
 // make custom basic color stuff (maybe as const fns)
 // MAYBE: check if owo-colors lib is better
-let ERROR_PREFIX: String = message_prefix(ERROR.red().bold());
+// TODO: Would-be-nice if below could work (requires const-fns in terminal-color-lib all-the-way-down):
+//   const ERROR_PREFIX: String = message_prefix(ERROR.red().bold());
+
+pub fn error_prefix() -> String {
+    message_prefix(ERROR.red().bold())
+}
 
 pub fn ok<S: ToString>(message: S) {
     println!(
