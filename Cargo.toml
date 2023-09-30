@@ -9,9 +9,9 @@ description = "program does make but better veri gud 10/9" # TODO
 [dependencies]
 clap = { version = "4.0.18", features = ["derive"] }
 clap_complete = "4.2.0"
-colored = "2.0.0"
 oh_no = { version = "0.1.0", path = "../oh_no" }
 serde = { version = "1.0.144", features = ["derive"] }
+simply_colorful = { version = "0.1.0", path = "../simply_colorful" }
 toml = "0.7.4"
 
 [features]
