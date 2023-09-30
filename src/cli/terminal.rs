@@ -1,4 +1,4 @@
-use colored::Colorize;
+use simply_colorful::Colorize;
 
 pub const INFO: &str = "ℹ︎";
 pub const ERROR: &str = "✘";

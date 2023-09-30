@@ -10,7 +10,7 @@ mod tasks;
 use std::env;
 
 use clap::Parser;
-use colored::Colorize;
+use simply_colorful::Colorize;
 
 use crate::cli::interface;
 use crate::cli::interface::{CliArgs, SubCommands};
