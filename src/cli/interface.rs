@@ -25,8 +25,15 @@ pub(crate) enum SubCommands {
 #[derive(Parser, Debug)]
 #[clap(author, about)]
 pub(crate) struct CliArgs {
-    #[command(subcommand)]
-    pub command: SubCommands,
+    // #[command(subcommand)]
+    // pub command: SubCommands,
+    #[arg(short, long)]
+    pub list: bool,
+    #[arg(short, long)]
+    pub init: Option<PathBuf>,
+    #[arg(short, long)]
+    pub shell_complete: bool,
+    pub commands: Vec<String>,
 }
 
 pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {

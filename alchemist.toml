@@ -9,7 +9,7 @@ args = ["install", "--path", "."]
 
 [tasks.generate_shell_completions]
 command = "alchemist"
-args = ["shell-complete"]
+args = ["--shell-complete"]
 
 [tasks.install]
 serial_tasks = ["cargo_install", "generate_shell_completions"]
