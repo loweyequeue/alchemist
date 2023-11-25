@@ -69,6 +69,25 @@ pub struct AlchemistParallelTasks {
     hide: Option<bool>,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
+/// Alchemist ShellTask type can run a script in `sh`
+///
+///
+/// Example:
+/// ```
+/// [tasks.my_task]
+/// shell_script = '''
+/// VAR="value"
+/// echo my var is $VAR
+/// '''
+///
+/// ```
+pub struct AlchemistShellTask {
+    shell_script: String,
+    hide: Option<bool>,
+}
+
 impl RunnableTask for AlchemistBasicTask {
     fn run<S: ToString>(&self, task_name: S, _config: &AlchemistConfig) -> Result<()> {
         let task_name = task_name.to_string();
@@ -167,6 +186,33 @@ impl RunnableTask for AlchemistParallelTasks {
     }
 }
 
+impl RunnableTask for AlchemistShellTask {
+    fn run<S: ToString>(&self, task_name: S, _config: &AlchemistConfig) -> Result<()> {
+        let task_name = task_name.to_string();
+        let mut cmd = Command::new("sh");
+
+        cmd.arg("-c");
+        cmd.arg(&self.shell_script);
+
+        terminal::info(format!("Running shell script {}", task_name));
+        let mut child = cmd
+            .spawn()
+            .error_msg(format!("Failed to start shell script {task_name}."))?;
+        let exit_code = child.wait().error_msg(format!(
+            "Shell script '{task_name}' can not be awaited (won't stop)."
+        ))?;
+
+        if !exit_code.success() {
+            return AssertionError(format!(
+                "Shell script '{task_name}' exited with non-zero exit code."
+            ))
+            .into();
+        }
+        terminal::ok(format!("Finished shell script {task_name}"));
+        Ok(())
+    }
+}
+
 #[derive(Debug, Deserialize, Clone)]
 #[serde(untagged)]
 /// An enum of multiple variations of tasks within the alchemist.toml
@@ -179,6 +225,7 @@ pub enum AlchemistTaskType {
     AlchemistBasicTask(AlchemistBasicTask),
     AlchemistSerialTasks(AlchemistSerialTasks),
     AlchemistParallelTasks(AlchemistParallelTasks),
+    AlchemistShellTask(AlchemistShellTask),
 }
 
 impl AlchemistTaskType {
@@ -187,6 +234,7 @@ impl AlchemistTaskType {
             Self::AlchemistBasicTask(v) => !v.hide.unwrap_or(false),
             Self::AlchemistSerialTasks(v) => !v.hide.unwrap_or(false),
             Self::AlchemistParallelTasks(v) => !v.hide.unwrap_or(false),
+            Self::AlchemistShellTask(v) => !v.hide.unwrap_or(false),
         }
     }
 }
@@ -197,6 +245,7 @@ impl RunnableTask for AlchemistTaskType {
             AlchemistTaskType::AlchemistBasicTask(task) => task.run(task_name, config),
             AlchemistTaskType::AlchemistSerialTasks(task) => task.run(task_name, config),
             AlchemistTaskType::AlchemistParallelTasks(task) => task.run(task_name, config),
+            AlchemistTaskType::AlchemistShellTask(task) => task.run(task_name, config),
         }
     }
 }

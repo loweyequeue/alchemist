@@ -20,3 +20,9 @@ env = { FOO = "BAR" }
 command = "echo"
 args = ["I am sneaky"]
 hide = true
+
+[tasks.shell]
+script = '''
+VAR="World"
+echo Hello ${VAR}!
+'''

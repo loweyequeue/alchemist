@@ -28,6 +28,16 @@ pub enum AlchemistError {
     TomlParseError(ErrorContext<toml::de::Error>),
 }
 
+impl AlchemistError {
+    fn fmt_context(&self) -> String {
+        match self {
+            Self::IOError(v) => v.to_string(),
+            Self::AssertionError(v) => v.to_string(),
+            Self::TomlParseError(v) => v.to_string(),
+        }
+    }
+}
+
 impl std::fmt::Display for AlchemistError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let variant = match self {
@@ -43,7 +53,7 @@ impl std::fmt::Display for AlchemistError {
             "[".dimmed(),
             variant.dimmed().italic(),
             "]: ".dimmed(),
-            self
+            self.fmt_context()
         )
     }
 }
