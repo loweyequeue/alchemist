@@ -27,12 +27,16 @@ pub(crate) enum SubCommands {
 pub(crate) struct CliArgs {
     // #[command(subcommand)]
     // pub command: SubCommands,
-    #[arg(short, long)]
+    #[arg(short, long, conflicts_with_all=["init", "shell_complete", "commands"])]
     pub list: bool,
-    #[arg(short, long)]
+
+    #[arg(short, long, conflicts_with_all=["list", "shell_complete", "commands"])]
     pub init: Option<PathBuf>,
-    #[arg(short, long)]
+
+    #[arg(short, long, conflicts_with_all=["list", "init", "commands"])]
     pub shell_complete: bool,
+
+    #[arg(conflicts_with_all=["list", "init", "shell_complete"])]
     pub commands: Vec<String>,
 }
 
