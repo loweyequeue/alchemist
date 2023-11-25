@@ -25,8 +25,6 @@ pub(crate) enum SubCommands {
 #[derive(Parser, Debug)]
 #[clap(author, about)]
 pub(crate) struct CliArgs {
-    // #[command(subcommand)]
-    // pub command: SubCommands,
     #[arg(short, long, conflicts_with_all=["init", "shell_complete", "commands"])]
     pub list: bool,
 
