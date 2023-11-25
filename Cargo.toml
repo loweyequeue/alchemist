@@ -2,7 +2,7 @@
 name = "alchemist"
 version = "0.3.0"
 edition = "2021"
-description = "program does make but better veri gud 10/9" # TODO
+description = "Task runner and build tool written in Rust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

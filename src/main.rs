@@ -19,8 +19,12 @@ use crate::cli::terminal;
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn main() {
-    println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
     let args = CliArgs::parse();
+
+    if !args.quiet {
+        println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
+    }
+
     if args.init.is_some() {
         match interface::create_template_config(args.init) {
             Ok(_) => terminal::ok("Created template file!"),
