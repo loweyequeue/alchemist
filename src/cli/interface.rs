@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{CommandFactory, Parser};
 use oh_no::ResultContext;
 
 use crate::cli::terminal;
@@ -10,29 +10,24 @@ use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_F
 use crate::error::{AssertionError, Result};
 use crate::tasks::RunnableTask;
 
-#[derive(Subcommand, Debug)]
-pub(crate) enum SubCommands {
-    #[command(about = "Create a template file at current dir or at a specified location")]
-    Init { target: Option<PathBuf> },
-    #[command(alias = "ls", about = "List all available commands (alias: ls)")]
-    List {},
-    #[command(about = "Run list of given tasks")]
-    Run { tasks: Vec<String> },
-    #[command(hide = true)]
-    ShellComplete,
-}
-
 #[derive(Parser, Debug)]
 #[clap(author, about)]
 pub(crate) struct CliArgs {
-    #[arg(short, long, conflicts_with_all=["init", "shell_complete", "commands"])]
+    #[arg(short, long, help="Lists all available commands in the current project", conflicts_with_all=["init", "shell_complete", "commands"])]
     pub list: bool,
 
-    #[arg(short, long, conflicts_with_all=["list", "shell_complete", "commands"])]
+    #[arg(short, long, help = "Write an alchemist example file to start a new alchemist project", conflicts_with_all=["list", "shell_complete", "commands"])]
     pub init: Option<PathBuf>,
 
-    #[arg(short, long, conflicts_with_all=["list", "init", "commands"])]
+    #[arg(short, long, help= "Writes completion files to common shells", conflicts_with_all=["list", "init", "commands"])]
     pub shell_complete: bool,
+
+    #[arg(
+        short,
+        long,
+        help = "Hide intro text, useful for calling alchemist recursively"
+    )]
+    pub quiet: bool,
 
     #[arg(conflicts_with_all=["list", "init", "shell_complete"])]
     pub commands: Vec<String>,
