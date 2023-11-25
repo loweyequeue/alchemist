@@ -13,7 +13,7 @@ use clap::Parser;
 use simply_colorful::Colorize;
 
 use crate::cli::interface;
-use crate::cli::interface::{CliArgs, SubCommands};
+use crate::cli::interface::CliArgs;
 use crate::cli::terminal;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
