@@ -22,7 +22,7 @@ args = ["I am sneaky"]
 hide = true
 
 [tasks.shell]
-script = '''
+shell_script = '''
 VAR="World"
 echo Hello ${VAR}!
 '''
