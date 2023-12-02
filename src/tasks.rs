@@ -8,12 +8,13 @@ use crate::cli::terminal;
 
 use oh_no::ResultContext;
 use serde::Deserialize;
+
+// -- end of imports --
+
 pub trait RunnableTask {
     fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()>;
 }
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
 /// Alchemist BasicTask type is a simple task with a command and optional args
 /// Example:
 /// ```
@@ -21,6 +22,8 @@ pub trait RunnableTask {
 /// command = "echo"
 /// args = ["hello", "world"]
 /// ```
+#[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct AlchemistBasicTask {
     #[allow(dead_code)]
     command: String,
@@ -30,8 +33,6 @@ pub struct AlchemistBasicTask {
     pub hide: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
 /// Alchemist SerialTasks type can be a set of multiple basic tasks
 ///
 /// These tasks are executed in the given order
@@ -44,14 +45,14 @@ pub struct AlchemistBasicTask {
 /// hide = false
 ///
 /// ```
+#[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct AlchemistSerialTasks {
     #[allow(dead_code)]
     serial_tasks: Vec<String>,
     hide: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
 /// Alchemist ParallelTasks type can be a set of multiple basic tasks
 ///
 /// These tasks are executed in parallel.
@@ -64,15 +65,21 @@ pub struct AlchemistSerialTasks {
 /// hide = false
 ///
 /// ```
+#[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct AlchemistParallelTasks {
     parallel_tasks: Vec<String>,
     hide: Option<bool>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
 /// Alchemist ShellTask type can run a script in `sh`
 ///
+/// NOTE: The script size is limited to the ARG_MAX
+/// Run `getconf ARG_MAX` on your system to see the actual allowed size.
+/// See: https://www.in-ulm.de/~mascheck/various/argmax/ for more details.
+///
+/// For larger scripts consider making a scripts directory and running
+/// the script from a BasicTask
 ///
 /// Example:
 /// ```
@@ -83,6 +90,8 @@ pub struct AlchemistParallelTasks {
 /// '''
 ///
 /// ```
+#[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct AlchemistShellTask {
     shell_script: String,
     hide: Option<bool>,
