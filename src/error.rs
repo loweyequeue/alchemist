@@ -4,7 +4,7 @@ use simply_colorful::Colorize;
 
 use oh_no::{from_err, ErrorContext};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AssertionError(pub String);
 
 impl Display for AssertionError {
@@ -21,7 +21,7 @@ impl<T> From<AssertionError> for Result<T> {
 
 impl std::error::Error for AssertionError {}
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AlchemistError {
     IOError(ErrorContext<std::io::Error>),
     AssertionError(ErrorContext<AssertionError>),

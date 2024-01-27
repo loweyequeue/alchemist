@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "tasks_test.rs"]
+mod tasks_test;
+
 use std::collections::HashMap;
 use std::process::Command;
 
