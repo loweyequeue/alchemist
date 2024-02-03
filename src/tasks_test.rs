@@ -31,5 +31,14 @@ fn basic_task_nonzero_exit_code() {
             tasks: HashMap::new(),
         },
     );
-    assert_eq!(ret, Result::Ok(()));
+    assert_eq!(
+        ret,
+        Result::Err(AlchemistError::AssertionErrorVariant(oh_no::ErrorContext(
+            AssertionError(
+                "While running basic task name, command `sh -c false` failed (non-zero exit code)."
+                    .to_string()
+            ),
+            None
+        )))
+    );
 }

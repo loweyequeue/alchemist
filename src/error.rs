@@ -23,27 +23,27 @@ impl std::error::Error for AssertionError {}
 
 #[derive(Debug, PartialEq)]
 pub enum AlchemistError {
-    IOError(ErrorContext<std::io::Error>),
-    AssertionError(ErrorContext<AssertionError>),
-    TomlParseError(ErrorContext<toml::de::Error>),
+    IOErrorVariant(ErrorContext<std::io::Error>),
+    AssertionErrorVariant(ErrorContext<AssertionError>),
+    TomlParseErrorVariant(ErrorContext<toml::de::Error>),
 }
 
 impl AlchemistError {
     fn fmt_context(&self) -> String {
         match self {
-            Self::IOError(v) => v.to_string(),
-            Self::AssertionError(v) => v.to_string(),
-            Self::TomlParseError(v) => v.to_string(),
+            Self::IOErrorVariant(v) => v.to_string(),
+            Self::AssertionErrorVariant(v) => v.to_string(),
+            Self::TomlParseErrorVariant(v) => v.to_string(),
         }
     }
 }
 
 impl std::fmt::Display for AlchemistError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let variant = match self {
-            Self::IOError(_) => "IOError",
-            Self::AssertionError(_) => "AssertionError",
-            Self::TomlParseError(_) => "TomlParseError",
+        let error_in_variant = match self {
+            Self::IOErrorVariant(_) => "IOError",
+            Self::AssertionErrorVariant(_) => "AssertionError",
+            Self::TomlParseErrorVariant(_) => "TomlParseError",
         }
         .to_string();
         write!(
@@ -51,23 +51,27 @@ impl std::fmt::Display for AlchemistError {
             "{}{}{}{}{}",
             crate::cli::terminal::error_prefix(),
             "[".dimmed(),
-            variant.dimmed().italic(),
+            error_in_variant.dimmed().italic(),
             "]: ".dimmed(),
             self.fmt_context()
         )
     }
 }
 
-from_err!(std::io::Error, AlchemistError, AlchemistError::IOError);
+from_err!(
+    std::io::Error,
+    AlchemistError,
+    AlchemistError::IOErrorVariant
+);
 from_err!(
     AssertionError,
     AlchemistError,
-    AlchemistError::AssertionError
+    AlchemistError::AssertionErrorVariant
 );
 from_err!(
     toml::de::Error,
     AlchemistError,
-    AlchemistError::TomlParseError
+    AlchemistError::TomlParseErrorVariant
 );
 
 pub type Result<T> = std::result::Result<T, AlchemistError>;
