@@ -118,11 +118,11 @@ impl RunnableTask for AlchemistBasicTask {
         };
         terminal::info(format!("Running command {}", command_str));
         let mut child = cmd.spawn().error_msg(format!("Starting basic task {task_name} with command `{command_str}` either not found or insufficient permissions to run."))?;
-        let exit_code = child.wait().error_msg(format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code)."))?;
+        let exit_code = child.wait().error_msg(format!("While running basic task {task_name}, command `{command_str}` failed to wait(pid) on started process."))?;
 
         if !exit_code.success() {
             return AssertionError(
-                format!( "While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")
+                format!("While running basic task {task_name}, command `{command_str}` failed (non-zero exit code).")
             ).into();
         }
         terminal::ok(format!("Finished command {}", command_str));
