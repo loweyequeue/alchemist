@@ -164,4 +164,188 @@ fn serial_task_empty() {
     assert!(ret.is_ok());
 }
 
-// TODO: Add remaining tests for serial tasks & for Parallel Tasks.
+#[test]
+fn serial_tasks_ok() {
+    let tmpdir = tempfile::tempdir().unwrap();
+    let tmpfile = tmpdir.path().join("output.txt");
+    let serial = AlchemistSerialTasks {
+        serial_tasks: vec!["one".to_string(), "two".to_string()],
+        hide: None,
+    };
+    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+
+    tasks.insert(
+        "one".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec![
+                "-c".to_string(),
+                format!("echo one >> {}", &tmpfile.display()).to_string(),
+            ]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+    tasks.insert(
+        "two".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec![
+                "-c".to_string(),
+                format!("echo two >> {}", &tmpfile.display()).to_string(),
+            ]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+
+    let ret = serial.run("name", &AlchemistConfig { tasks: tasks });
+    assert!(ret.is_ok());
+    assert!(tmpfile.exists());
+    let tmpdata = std::fs::read(tmpfile).unwrap();
+    let output = std::str::from_utf8(&tmpdata).unwrap();
+    assert_eq!("one\ntwo\n", output);
+}
+
+#[test]
+fn test_serial_task_one_fail() {
+    let serial = AlchemistSerialTasks {
+        serial_tasks: vec!["one".to_string(), "two".to_string()],
+        hide: None,
+    };
+    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+    tasks.insert(
+        "one".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec!["-c".to_string(), "true".to_string()]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+    tasks.insert(
+        "two".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec!["-c".to_string(), "false".to_string()]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+    let ret = serial.run("name", &AlchemistConfig { tasks: tasks });
+    assert_eq!(
+        ret,
+        Result::Err(AlchemistError::AssertionErrorVariant(oh_no::ErrorContext(
+            AssertionError(
+                "While running basic task two, command `sh -c false` failed (non-zero exit code)."
+                    .to_string()
+            ),
+            None
+        )))
+    );
+}
+
+//
+// ParallelTasks tests:
+//
+
+#[test]
+fn parallel_task_empty() {
+    let parallel = AlchemistParallelTasks {
+        parallel_tasks: Vec::new(),
+        hide: None,
+    };
+    let ret = parallel.run(
+        "name",
+        &AlchemistConfig {
+            tasks: HashMap::new(),
+        },
+    );
+    assert!(ret.is_ok());
+}
+
+#[test]
+fn parallel_tasks_one_fail() {
+    let parallel = AlchemistParallelTasks {
+        parallel_tasks: vec!["one".to_string(), "two".to_string()],
+        hide: None,
+    };
+    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+    tasks.insert(
+        "one".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec!["-c".to_string(), "true".to_string()]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+    tasks.insert(
+        "two".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec!["-c".to_string(), "false".to_string()]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+    let ret = parallel.run("name", &AlchemistConfig { tasks: tasks });
+    assert_eq!(
+        ret,
+        Result::Err(AlchemistError::AssertionErrorVariant(oh_no::ErrorContext(
+            AssertionError("One or more errors occoured in parallel tasks".to_string()),
+            None
+        )))
+    );
+}
+
+#[test]
+fn parallel_tasks_actually_run_parallel() {
+    let tmpdir = tempfile::tempdir().unwrap();
+    let tmpfile = tmpdir.path().join("output.txt");
+    let parallel = AlchemistParallelTasks {
+        parallel_tasks: vec!["one".to_string(), "two".to_string()],
+        hide: None,
+    };
+    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+
+    tasks.insert(
+        "one".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec![
+                "-c".to_string(),
+                format!("sleep 0.2; echo one >> {}", &tmpfile.display()).to_string(),
+            ]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+    tasks.insert(
+        "two".to_string(),
+        AlchemistBasicTask {
+            command: "sh".to_string(),
+            args: Some(vec![
+                "-c".to_string(),
+                format!("echo two >> {}", &tmpfile.display()).to_string(),
+            ]),
+            env: None,
+            hide: None,
+        }
+        .into(),
+    );
+
+    let ret = parallel.run("name", &AlchemistConfig { tasks: tasks });
+    assert!(ret.is_ok());
+    assert!(tmpfile.exists());
+    let tmpdata = std::fs::read(tmpfile).unwrap();
+    let output = std::str::from_utf8(&tmpdata).unwrap();
+    assert_eq!("two\none\n", output);
+}
