@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "config_test.rs"]
+mod config_test;
+
 use std::env::{current_dir, set_current_dir};
 
 use std::path::PathBuf;
@@ -42,15 +46,6 @@ pub fn locate_config() -> Result<PathBuf> {
             ))
             .into()
         })
-    // workingdir
-    //     .ancestors()
-    //     .map(|p| p.to_path_buf().join(CONFIG_FILE))
-    //     .filter(|c| c.exists() && c.is_file())
-    //     .next()
-    //     .ok_or(AlchemistErrorType::NoConfigFileError.with_message(format!(
-    //         "'{}' does not exist or is not a file.",
-    //         CONFIG_FILE
-    //     )))
 }
 
 pub fn parse_config(config_file_path: &PathBuf) -> Result<AlchemistConfig> {
