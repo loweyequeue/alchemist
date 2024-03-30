@@ -37,6 +37,12 @@ pub struct AlchemistBasicTask {
     pub hide: Option<bool>,
 }
 
+impl From<AlchemistBasicTask> for AlchemistTaskType {
+    fn from(task: AlchemistBasicTask) -> Self {
+        AlchemistTaskType::AlchemistBasicTask(task)
+    }
+}
+
 /// Alchemist SerialTasks type can be a set of multiple basic tasks
 ///
 /// These tasks are executed in the given order
@@ -57,6 +63,12 @@ pub struct AlchemistSerialTasks {
     hide: Option<bool>,
 }
 
+impl From<AlchemistSerialTasks> for AlchemistTaskType {
+    fn from(task: AlchemistSerialTasks) -> Self {
+        AlchemistTaskType::AlchemistSerialTasks(task)
+    }
+}
+
 /// Alchemist ParallelTasks type can be a set of multiple basic tasks
 ///
 /// These tasks are executed in parallel.
@@ -74,6 +86,12 @@ pub struct AlchemistSerialTasks {
 pub struct AlchemistParallelTasks {
     parallel_tasks: Vec<String>,
     hide: Option<bool>,
+}
+
+impl From<AlchemistParallelTasks> for AlchemistTaskType {
+    fn from(task: AlchemistParallelTasks) -> Self {
+        AlchemistTaskType::AlchemistParallelTasks(task)
+    }
 }
 
 /// Alchemist ShellTask type can run a script in `sh`
@@ -99,6 +117,12 @@ pub struct AlchemistParallelTasks {
 pub struct AlchemistShellTask {
     shell_script: String,
     hide: Option<bool>,
+}
+
+impl From<AlchemistShellTask> for AlchemistTaskType {
+    fn from(task: AlchemistShellTask) -> Self {
+        AlchemistTaskType::AlchemistShellTask(task)
+    }
 }
 
 impl RunnableTask for AlchemistBasicTask {
