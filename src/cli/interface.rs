@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use clap::{CommandFactory, Parser};
 use oh_no::ResultContext;
@@ -17,7 +17,7 @@ pub(crate) struct CliArgs {
     pub list: bool,
 
     #[arg(short, long, help = "Write an alchemist example file to start a new alchemist project", conflicts_with_all=["list", "shell_complete", "commands"])]
-    pub init: Option<PathBuf>,
+    pub init: Option<Option<PathBuf>>,
 
     #[arg(short, long, help= "Writes completion files to common shells", conflicts_with_all=["list", "init", "commands"])]
     pub shell_complete: bool,
@@ -47,7 +47,10 @@ pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {
 }
 
 pub(crate) fn create_template_config(target: Option<PathBuf>) -> Result<()> {
-    let target_dir = target.unwrap_or_else(|| Path::new(".").to_path_buf());
+    let target_dir = match target {
+        Some(dir) => dir,
+        None => PathBuf::from("."),
+    };
     if !(target_dir.exists() && target_dir.is_dir()) {
         return AssertionError(format!(
             "Template init dir '{}' does not exist (or is not a directory).",

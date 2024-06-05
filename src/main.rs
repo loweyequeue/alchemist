@@ -25,8 +25,8 @@ fn main() {
         println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
     }
 
-    if args.init.is_some() {
-        match interface::create_template_config(args.init) {
+    if let Some(init_target) = args.init {
+        match interface::create_template_config(init_target) {
             Ok(_) => terminal::ok("Created template file!"),
             Err(e) => terminal::error(e),
         }
