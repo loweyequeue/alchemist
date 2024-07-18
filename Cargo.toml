@@ -10,8 +10,8 @@ description = "Task runner and build tool written in Rust"
 clap = { version = "4.0.18", features = ["derive"] }
 clap_complete = "4.2.0"
 oh_no = { version = "0.2.0", path = "../oh_no" }
+owo-colors = "4.0.0"
 serde = { version = "1.0.144", features = ["derive"] }
-simply_colorful = { version = "0.1.0", path = "../simply_colorful" }
 toml = "0.7.4"
 
 [features]
