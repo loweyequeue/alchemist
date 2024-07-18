@@ -9,8 +9,8 @@ dependencies = [
  "clap",
  "clap_complete",
  "oh_no",
+ "owo-colors",
  "serde",
- "simply_colorful",
  "tempfile",
  "toml",
 ]
@@ -204,6 +204,12 @@ name = "oh_no"
 version = "0.2.0"
 
 [[package]]
+name = "owo-colors"
+version = "4.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "caff54706df99d2a78a5a4e3455ff45448d81ef1bb63c22cd14052ca0e993a3f"
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -262,10 +268,6 @@ checksum = "79e674e01f999af37c49f70a6ede167a8a60b2503e56c5599532a65baa5969a0"
 dependencies = [
  "serde",
 ]
-
-[[package]]
-name = "simply_colorful"
-version = "0.1.0"
 
 [[package]]
 name = "strsim"

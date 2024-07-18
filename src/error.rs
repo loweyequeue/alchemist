@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use simply_colorful::Colorize;
+use owo_colors::OwoColorize;
 
 use oh_no::{from_err, ErrorContext};
 

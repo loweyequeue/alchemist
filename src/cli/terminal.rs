@@ -1,4 +1,4 @@
-use simply_colorful::Colorize;
+use owo_colors::OwoColorize;
 
 pub const INFO: &str = "ℹ︎";
 pub const ERROR: &str = "✘";
@@ -10,12 +10,6 @@ pub const DEBUG: &str = "⌗";
 fn message_prefix<S: ToString>(icon: S) -> String {
     format!("{}{}{}", "[".dimmed(), icon.to_string(), "]".dimmed())
 }
-
-// TODO: FIXME: Continue here, colored lib needs to go away
-// make custom basic color stuff (maybe as const fns)
-// MAYBE: check if owo-colors lib is better
-// TODO: Would-be-nice if below could work (requires const-fns in terminal-color-lib all-the-way-down):
-//   const ERROR_PREFIX: String = message_prefix(ERROR.red().bold());
 
 pub fn error_prefix() -> String {
     message_prefix(ERROR.red().bold())
