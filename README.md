@@ -136,7 +136,7 @@ Simply clone the repo & do a local cargo install:
 ```sh
 git clone https://github.com/totallynotavirusexe/alchemist-rs.git
 cd alchemist-rs
-cargo install --path .
+cargo run -- install
 ```
 
 ### Optional Completions

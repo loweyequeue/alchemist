@@ -7,11 +7,10 @@ use std::env::{current_dir, set_current_dir};
 use std::path::PathBuf;
 use std::{collections::HashMap, fs};
 
-use oh_no::ResultContext;
 use serde::Deserialize;
 
 use crate::cli::terminal;
-use crate::error::{AssertionError, Result};
+use crate::error::{AssertionError, Result, ResultContext};
 use crate::tasks::*;
 
 pub const CONFIG_FILE: &str = "alchemist.toml";
