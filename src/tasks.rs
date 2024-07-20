@@ -6,11 +6,10 @@ use std::collections::HashMap;
 use std::process::Command;
 
 use crate::config::AlchemistConfig;
-use crate::error::{AlchemistError, AssertionError, Result};
+use crate::error::{AlchemistError, AssertionError, Result, ResultContext};
 
 use crate::cli::terminal;
 
-use oh_no::ResultContext;
 use serde::Deserialize;
 
 // -- end of imports --
@@ -177,7 +176,7 @@ impl RunnableTask for AlchemistSerialTasks {
 
 // TODO: Error handling for failed parallel tasts & stdout/-err (think...)
 impl RunnableTask for AlchemistParallelTasks {
-    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> crate::error::Result<()> {
+    fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()> {
         let task_name = task_name.to_string();
         terminal::info(format!(
             "Running parallel task '{}' which is a collection of {:?}",

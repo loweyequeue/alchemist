@@ -1,4 +1,4 @@
-use crate::error::AlchemistError;
+use crate::error::{AlchemistError, ErrorContext};
 
 use super::*;
 
@@ -31,7 +31,7 @@ fn local_config_in_tempdir() {
     let config_not_found = locate_config().unwrap_err();
     assert_eq!(
         config_not_found,
-        AlchemistError::AssertionErrorVariant(oh_no::ErrorContext(
+        AlchemistError::AssertionErrorVariant(ErrorContext(
             AssertionError("'alchemist.toml' does not exist or is not a file.".to_string()),
             None
         ))
