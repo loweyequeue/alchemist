@@ -1,4 +1,4 @@
-# alchemist-rs
+# Alchemist
 
 Alchemist is a tool that can easily replace your `bin/` dirs full of scripts, or unnecessarily complicated `Makefile`s.
 
@@ -11,23 +11,23 @@ Jump to the [Installation](#Installation) to get started
 
 To use alchemist for a project simply run `alchemist --init` in the project root
 
-This will create an `alchemist.toml` file with an example for each type of supported task
+This will create an `alchemist.toml` file with an example of each supported task type.
 
-Then run `alchemist --list` to see all available tasks
+Then run `alchemist --list` to see all available tasks.
 
 Then simply run one of the tasks with `alchemist my-task`.
 
-Or multiple tasks (in serial) with `alchemist my-task1 my-task2`
+Or multiple tasks (serially) with `alchemist my-task1 my-task2`
 
-Check below for a more in-depth explanation on all task types
+Check below for a more in-depth explanation on all task types.
 
 ## Tasks
 
-### basic_task
+### Basic Task
 
 A simple task, execute command X with Yn arguments.
 
-Inside your `alchemist.toml` create a new task with atleast a `command` field
+Inside your `alchemist.toml` create a new task with at least a `command` field
 
 ```toml
 [tasks.my_basic_task]
@@ -37,11 +37,11 @@ command = "pwd"
 Other optional fields:
 - args:`list` Supply a list of arguments to the `command` (`args = ["hello", "world"]`)
 - hide:`bool` Hide the task from `alchemist --list` (`hide = true`)
-- env:`string` Set an environment variable for this task
+- env:`string` Set an environment variable for this task `env = { FOO = "BAR", BAZ = "BUZZ" }`
 
-### serial_task
+### Serial Task
 
-A serial task is a collection of basic_tasks that will be executed one after the other.
+A serial task is a collection of tasks that will be executed one after the other.
 
 Inside your `alchemist.toml` create a new task with at least a `serial_tasks` field
 ```toml
@@ -54,10 +54,9 @@ All tasks in the `serial_tasks` list have to exist somewhere in the `alchemist.t
 Other optional fields:
 - hide:`bool` hide the task from `alchemist --list` (`hide = true`)
 
+### Parallel Task
 
-### parallel_task
-
-A parallel task is very similar to serial_task except that all tasks will be ran at the same time and then be awaited.
+A parallel task is very similar to serial task except that all tasks will be ran at the same time and then be awaited.
 
 Inside your `alchemist.toml` create a new task with at least a `parallel_tasks` field
 ```toml
@@ -70,9 +69,9 @@ All tasks in the `parallel_tasks` list have to exist somewhere in the `alchemist
 Other optional fields:
 - hide:`bool` hide the task from `alchemist --list` (`hide = true`)
 
-### shell_script
+### Shell Script
 
-Run a good 'ol shell script (executed in `sh`)
+Run a good 'ol shell script (executed in `sh`).
 
 Inside your `alchemist.toml` create a new task with at least a `shell_script` field
 ```toml
@@ -83,9 +82,12 @@ echo Hello ${VAR}!
 '''
 ```
 
+Other optional fields:
+- hide:`bool` hide the task from `alchemist --list` (`hide = true`)
+
 ## Advanced usage
 
-Parallel tasks and serial tasks can be combined to run a series of tasks at the same time and await them before running another (series of) task(s)
+Parallel tasks and serial tasks can be combined to run a series of tasks at the same time and await them before running another (series of) task(s).
 
 A small example to build 2 rust binaries in parallel and run them only when done:
 ```toml
@@ -118,13 +120,24 @@ parallel_tasks = ["run_prebuilt_dev_server", "run_prebuilt_dev_client"]
 serial_tasks = ["build_dev", "run_prebuilt_dev"]
 ```
 
-With this example you can run `alchemist run` to build 2 binaries in parallel, then once they are both done, run them both in parallel (starting the server first)
+With this example you can run `alchemist run` to build 2 binaries in parallel, then once they are both done, run them both in parallel (starting the server first).
 
 ## Installation
 
 ### Requirements
-- Unix (POSIX shell and fs)
+- Unix (POSIX shell `sh` & filesystem)
 - [cargo](https://rustup.rs/)
 
 ### Building and installing
-Simply clone the repo and run `cargo install --path .`
+Simply clone the repo & do a local cargo install:
+
+```sh
+git clone https://github.com/totallynotavirusexe/alchemist-rs.git
+cd alchemist-rs
+cargo install --path .
+```
+
+### Optional Completions
+Currently only implemented for the `fish`-shell.
+
+Run: `alchemist --shell-complete` to generate the completions.
