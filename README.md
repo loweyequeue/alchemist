@@ -1,5 +1,7 @@
 # Alchemist
 
+[![Build Status](https://abstract.semaphoreci.com/badges/alchemist-rs/branches/main.svg?style=shields&key=cdf2297c-d5d0-4ddc-8c37-e330fe7a6693)](https://abstract.semaphoreci.com/projects/alchemist-rs)
+
 Alchemist is a tool that can easily replace your `bin/` dirs full of scripts, or unnecessarily complicated `Makefile`s.
 
 Alchemist aims to be as powerful as possible while staying extremely simple to use.
