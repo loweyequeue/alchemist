@@ -37,8 +37,11 @@ pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {
     set_cwd_to_config_dir(&config_file_path)?;
 
     for t in tasks {
-        if let Some(task) = alchemist_config.tasks.get(&t) {
-            task.run(t, &alchemist_config)?
+        match alchemist_config.tasks.get(&t) {
+            Some(task) => {
+                task.run(t, &alchemist_config)?;
+            }
+            None => terminal::warn(format!("Task '{}' does not exist!", t)),
         }
     }
     Ok(())
