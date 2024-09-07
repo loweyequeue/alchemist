@@ -2,4 +2,4 @@
 
 # FIXME: this is just a temporary file because its midnight and I will forget
 
-podman build -t dev .
+podman build --arch amd64 -t dev .
