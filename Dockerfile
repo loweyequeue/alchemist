@@ -1,4 +1,4 @@
-FROM alpine:20240807 AS base_1_80
+FROM --platform=linux/amd64 alpine:20240807 AS base_1_80
 
 WORKDIR /var/src
 
