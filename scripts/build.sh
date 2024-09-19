@@ -4,7 +4,7 @@
 
 # Sets: PROJECT_DIR, DEV_IMAGE_NAME, DEV_IMAGE_LOCAL_NAME, ARTIFACTS_DIR
 SCRIPT_DIR="$(realpath $(dirname $0))"
-source "${SCRIPT_DIR}/vars.sh"
+. "${SCRIPT_DIR}/vars.sh"
 
 # Ensure environment is clean:
 cargo clean

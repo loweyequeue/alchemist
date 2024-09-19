@@ -8,7 +8,7 @@ fi
 
 # Sets: PROJECT_DIR, DEV_IMAGE_NAME, DEV_IMAGE_LOCAL_NAME, ARTIFACTS_DIR
 SCRIPT_DIR="$(realpath $(dirname $0))"
-source "${SCRIPT_DIR}/vars.sh"
+. ${SCRIPT_DIR}/vars.sh
 
 # TODO::
 # - [ ] `.` here is the "Build Context" (see: https://docs.podman.io/en/latest/markdown/podman-build.1.html#description):
