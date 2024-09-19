@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(realpath $(dirname $0))"
 PROJECT_DIR=$(dirname $SCRIPT_DIR)
-source "${SCRIPT_DIR}/vars.sh"
+. "${SCRIPT_DIR}/vars.sh"
 
 if [ "$1" == "--keep" ]; then
   # TODO: Not having `--rm` doesn't seem to make a difference..? Why?
