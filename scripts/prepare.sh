@@ -18,29 +18,19 @@ SCRIPT_DIR="$(realpath $(dirname $0))"
 # - [ ] Check in registry iff already have a "good" image, and by default do not recreate.
 
 # Delete any old manifest for latest (since its mutable state)
-if podman manifest exists ${DEV_IMAGE_LOCAL_NAME}; then
-  podman manifest rm ${DEV_IMAGE_LOCAL_NAME}
+echo a $DEV_IMAGE_MANIFEST
+if podman manifest exists ${DEV_IMAGE_MANIFEST}; then
+  echo b
+  podman manifest rm ${DEV_IMAGE_MANIFEST}
 fi
+echo c
 
-# Build container images:
-echo
-echo '=================='
-echo '= AMD / INTEL 64 ='
-echo '=================='
-echo
+podman manifest create ${DEV_IMAGE_BASE_NAME}
+echo d
+
 podman build --file="${SCRIPT_DIR}/Dockerfile" \
-  --platform=linux/amd64 \
-  --manifest ${DEV_IMAGE_NAME} \
+  --platform=linux/amd64,linux/aarch64 \
+  --manifest ${DEV_IMAGE_MANIFEST} \
   ${ADDITIONAL_OPTIONS} \
   .
-
-echo
-echo '=================='
-echo '= ARM 64 ='
-echo '=================='
-echo
-podman build --file="${SCRIPT_DIR}/Dockerfile" \
-  --platform=linux/arm64 \
-  --manifest ${DEV_IMAGE_NAME} \
-  ${ADDITIONAL_OPTIONS} \
-  .
+echo e
