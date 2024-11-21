@@ -132,8 +132,8 @@ With this example you can run `alchemist run` to build 2 binaries in parallel, t
 Simply clone the repo & do a local cargo install:
 
 ```sh
-git clone https://github.com/totallynotavirusexe/alchemist-rs.git
-cd alchemist-rs
+git clone https://github.com/jasonverbeek/alchemist.git
+cd alchemist
 cargo run -- install
 ```
 
