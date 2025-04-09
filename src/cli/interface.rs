@@ -33,6 +33,10 @@ pub(crate) struct CliArgs {
 
 pub(crate) fn run_tasks(tasks: Vec<String>) -> Result<()> {
     let config_file_path = locate_config()?;
+    terminal::info(format!(
+        "Using alchemist file: {}",
+        config_file_path.display()
+    ));
     let alchemist_config = parse_config(&config_file_path)?;
     set_cwd_to_config_dir(&config_file_path)?;
 

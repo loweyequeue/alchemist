@@ -21,8 +21,20 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 fn main() {
     let args = CliArgs::parse();
 
+    let config_file_path = crate::config::locate_config().ok();
+
     if !args.quiet {
         println!("{} version {}\n", "alchemist".green(), VERSION.yellow());
+        if let Some(config_file_path) = config_file_path {
+            terminal::info(format!(
+                "Using alchemist file: {}\n",
+                config_file_path.display().yellow()
+            ));
+        } else {
+            terminal::warn(
+                "No alchemist config file found. Please run `alchemist --init` to create one.",
+            );
+        }
     }
 
     if let Some(init_target) = args.init {
