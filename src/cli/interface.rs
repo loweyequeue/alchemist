@@ -7,12 +7,16 @@ use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_F
 use crate::error::{AssertionError, Result, ResultContext};
 use crate::tasks::RunnableTask;
 use clap::{CommandFactory, Parser};
+use owo_colors::OwoColorize;
 
 #[derive(Parser, Debug)]
 #[clap(author, about)]
 pub(crate) struct CliArgs {
     #[arg(short, long, help="Lists all available commands in the current project", conflicts_with_all=["init", "shell_complete", "commands"])]
     pub list: bool,
+
+    #[arg(long, help="Lists all available and hidden commands in the current project with descriptions", conflicts_with_all=["list", "init", "shell_complete", "commands"])]
+    pub list_verbose: bool,
 
     #[arg(short, long, help = "Write an alchemist example file to start a new alchemist project", conflicts_with_all=["list", "shell_complete", "commands"])]
     pub init: Option<Option<PathBuf>>,
@@ -94,7 +98,14 @@ pub(crate) fn generate_completions() {
         clap_complete::Shell::Fish,
         &mut cmd,
         "alchemist",
-        completion_dir,
+        &completion_dir,
+    )
+    .expect("could not write completions file");
+    clap_complete::generate_to(
+        clap_complete::Shell::Fish,
+        &mut cmd,
+        "alch",
+        &completion_dir,
     )
     .expect("could not write completions file");
 }
@@ -103,6 +114,11 @@ pub(crate) fn list_available_tasks() -> Result<()> {
     let config_file_path = locate_config()?;
     let alchemist_config = parse_config(&config_file_path)?;
 
+    if alchemist_config.tasks.is_empty() {
+        terminal::warn("No tasks configured!");
+        return Ok(());
+    }
+
     let mut task_names = alchemist_config
         .tasks
         .iter()
@@ -110,18 +126,38 @@ pub(crate) fn list_available_tasks() -> Result<()> {
         .map(|(k, _)| k)
         .collect::<Vec<&String>>();
 
-    // let mut task_names = Vec::from_iter(alchemist_config.tasks.keys());
-
-    if task_names.is_empty() {
-        terminal::warn("No tasks configured!");
-        return Ok(());
-    }
-
     task_names.sort();
 
     terminal::ok("Available tasks:");
     for task_name in task_names {
         println!("\t{}", task_name);
+    }
+
+    Ok(())
+}
+
+pub(crate) fn list_available_tasks_verbose() -> Result<()> {
+    let config_file_path = locate_config()?;
+    let alchemist_config = parse_config(&config_file_path)?;
+
+    if alchemist_config.tasks.is_empty() {
+        terminal::warn("No tasks configured!");
+        return Ok(());
+    }
+
+    // Filtering of hidden tasks is disabled on purpose here
+    let mut task_names = alchemist_config
+        .tasks
+        .iter()
+        .map(|(k, v)| (k, v.describe()))
+        .collect::<Vec<(&String, String)>>();
+
+    task_names.sort_by_key(|(k, _)| *k);
+
+    terminal::ok("Available tasks:");
+    for (task_name, description) in task_names {
+        println!("\t{}", task_name.bold());
+        println!("\t\t{}", description.italic());
     }
 
     Ok(())

@@ -51,6 +51,13 @@ fn main() {
         }
         return;
     }
+    if args.list_verbose {
+        match interface::list_available_tasks_verbose() {
+            Ok(_) => (),
+            Err(e) => terminal::error(e),
+        }
+        return;
+    }
     if args.shell_complete {
         interface::generate_completions();
         return ();

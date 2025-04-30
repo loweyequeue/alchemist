@@ -16,6 +16,7 @@ use serde::Deserialize;
 
 pub trait RunnableTask {
     fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()>;
+    fn describe(&self) -> String;
 }
 
 /// Alchemist BasicTask type is a simple task with a command and optional args
@@ -151,6 +152,14 @@ impl RunnableTask for AlchemistBasicTask {
         terminal::ok(format!("Finished command {}", command_str));
         Ok(())
     }
+
+    fn describe(&self) -> String {
+        format!(
+            "{} {}",
+            self.command,
+            self.args.as_ref().unwrap_or(&vec![]).join(" ")
+        )
+    }
 }
 
 impl RunnableTask for AlchemistSerialTasks {
@@ -171,6 +180,10 @@ impl RunnableTask for AlchemistSerialTasks {
         }
         terminal::ok(format!("Finished serial task '{task_name}'"));
         Ok(())
+    }
+
+    fn describe(&self) -> String {
+        format!("SERIAL: {}", self.serial_tasks.join(" -> "))
     }
 }
 
@@ -220,6 +233,10 @@ impl RunnableTask for AlchemistParallelTasks {
             Ok(())
         }
     }
+
+    fn describe(&self) -> String {
+        format!("PARALLEL: {}", self.parallel_tasks.join(" & "))
+    }
 }
 
 impl RunnableTask for AlchemistShellTask {
@@ -246,6 +263,10 @@ impl RunnableTask for AlchemistShellTask {
         }
         terminal::ok(format!("Finished shell script {task_name}"));
         Ok(())
+    }
+
+    fn describe(&self) -> String {
+        format!("Shell: \n{}\n", self.shell_script)
     }
 }
 
@@ -282,6 +303,15 @@ impl RunnableTask for AlchemistTaskType {
             AlchemistTaskType::AlchemistSerialTasks(task) => task.run(task_name, config),
             AlchemistTaskType::AlchemistParallelTasks(task) => task.run(task_name, config),
             AlchemistTaskType::AlchemistShellTask(task) => task.run(task_name, config),
+        }
+    }
+
+    fn describe(&self) -> String {
+        match self {
+            AlchemistTaskType::AlchemistBasicTask(task) => task.describe(),
+            AlchemistTaskType::AlchemistSerialTasks(task) => task.describe(),
+            AlchemistTaskType::AlchemistParallelTasks(task) => task.describe(),
+            AlchemistTaskType::AlchemistShellTask(task) => task.describe(),
         }
     }
 }
