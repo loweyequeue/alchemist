@@ -5,18 +5,24 @@ use std::path::PathBuf;
 use crate::cli::terminal;
 use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
 use crate::error::{AssertionError, Result, ResultContext};
-use crate::tasks::RunnableTask;
+use crate::tasks::{RunnableTask, TaskDescription};
 use clap::{CommandFactory, Parser};
 use owo_colors::OwoColorize;
+
+// #[derive(Args)]
+// #[group(required = true, multiple = false)]
+// pub(crate) struct ListCommand {
+//
+// }
 
 #[derive(Parser, Debug)]
 #[clap(author, about)]
 pub(crate) struct CliArgs {
-    #[arg(short, long, help="Lists all available commands in the current project", conflicts_with_all=["init", "shell_complete", "commands"])]
+    #[arg(short, long, help="Lists all available commands in the current project. Use -v(v) for more detailed output\n    -v\tShow what each task does\n    -vv\tExpand ShellScriptTasks", conflicts_with_all=["init", "shell_complete", "commands"])]
     pub list: bool,
 
-    #[arg(long, help="Lists all available and hidden commands in the current project with descriptions", conflicts_with_all=["list", "init", "shell_complete", "commands"])]
-    pub list_verbose: bool,
+    #[arg(short, action = clap::ArgAction::Count, hide = true, conflicts_with_all=["init", "shell_complete", "commands"])]
+    pub verbose: u8,
 
     #[arg(short, long, help = "Write an alchemist example file to start a new alchemist project", conflicts_with_all=["list", "shell_complete", "commands"])]
     pub init: Option<Option<PathBuf>>,
@@ -110,33 +116,7 @@ pub(crate) fn generate_completions() {
     .expect("could not write completions file");
 }
 
-pub(crate) fn list_available_tasks() -> Result<()> {
-    let config_file_path = locate_config()?;
-    let alchemist_config = parse_config(&config_file_path)?;
-
-    if alchemist_config.tasks.is_empty() {
-        terminal::warn("No tasks configured!");
-        return Ok(());
-    }
-
-    let mut task_names = alchemist_config
-        .tasks
-        .iter()
-        .filter(|(_, v)| v.is_shown())
-        .map(|(k, _)| k)
-        .collect::<Vec<&String>>();
-
-    task_names.sort();
-
-    terminal::ok("Available tasks:");
-    for task_name in task_names {
-        println!("\t{}", task_name);
-    }
-
-    Ok(())
-}
-
-pub(crate) fn list_available_tasks_verbose() -> Result<()> {
+pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
     let config_file_path = locate_config()?;
     let alchemist_config = parse_config(&config_file_path)?;
 
@@ -149,15 +129,37 @@ pub(crate) fn list_available_tasks_verbose() -> Result<()> {
     let mut task_names = alchemist_config
         .tasks
         .iter()
+        .filter(|(_, v)| v.is_shown() || verbose >= 1)
         .map(|(k, v)| (k, v.describe()))
-        .collect::<Vec<(&String, String)>>();
+        .collect::<Vec<(&String, TaskDescription)>>();
 
     task_names.sort_by_key(|(k, _)| *k);
 
     terminal::ok("Available tasks:");
     for (task_name, description) in task_names {
-        println!("\t{}", task_name.bold());
-        println!("\t\t{}", description.italic());
+        println!(
+            "\t{} {} {}",
+            task_name.bold(),
+            "·",
+            description.task_type.yellow()
+        );
+        let desc = match verbose {
+            0 => continue,
+            1 => match description.description.len() {
+                0..=5 => description.description,
+                _ => [
+                    &description.description[0..2],
+                    &["...".to_string()],
+                    &description.description[description.description.len() - 2..],
+                ]
+                .concat(),
+            },
+            _ => description.description,
+        };
+        for line in desc {
+            println!("\t\t{}", line);
+        }
+        println!();
     }
 
     Ok(())

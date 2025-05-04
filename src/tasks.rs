@@ -10,13 +10,19 @@ use crate::error::{AlchemistError, AssertionError, Result, ResultContext};
 
 use crate::cli::terminal;
 
+use owo_colors::OwoColorize;
 use serde::Deserialize;
 
 // -- end of imports --
 
+pub struct TaskDescription {
+    pub task_type: String,
+    pub description: Vec<String>,
+}
+
 pub trait RunnableTask {
     fn run<S: ToString>(&self, task_name: S, config: &AlchemistConfig) -> Result<()>;
-    fn describe(&self) -> String;
+    fn describe(&self) -> TaskDescription;
 }
 
 /// Alchemist BasicTask type is a simple task with a command and optional args
@@ -153,12 +159,15 @@ impl RunnableTask for AlchemistBasicTask {
         Ok(())
     }
 
-    fn describe(&self) -> String {
-        format!(
-            "{} {}",
-            self.command,
-            self.args.as_ref().unwrap_or(&vec![]).join(" ")
-        )
+    fn describe(&self) -> TaskDescription {
+        TaskDescription {
+            task_type: "command".to_string(),
+            description: vec![format!(
+                "{} {}",
+                self.command,
+                self.args.as_ref().unwrap_or(&vec![]).join(" ")
+            )],
+        }
     }
 }
 
@@ -182,8 +191,14 @@ impl RunnableTask for AlchemistSerialTasks {
         Ok(())
     }
 
-    fn describe(&self) -> String {
-        format!("SERIAL: {}", self.serial_tasks.join(" -> "))
+    fn describe(&self) -> TaskDescription {
+        TaskDescription {
+            task_type: "serial".to_string(),
+            description: vec![format!(
+                "{}",
+                self.serial_tasks.join(&" → ".blue().to_string())
+            )],
+        }
     }
 }
 
@@ -234,8 +249,14 @@ impl RunnableTask for AlchemistParallelTasks {
         }
     }
 
-    fn describe(&self) -> String {
-        format!("PARALLEL: {}", self.parallel_tasks.join(" & "))
+    fn describe(&self) -> TaskDescription {
+        TaskDescription {
+            task_type: "parallel".to_string(),
+            description: vec![format!(
+                "{}",
+                self.parallel_tasks.join(&" ∥ ".blue().to_string())
+            )],
+        }
     }
 }
 
@@ -265,8 +286,11 @@ impl RunnableTask for AlchemistShellTask {
         Ok(())
     }
 
-    fn describe(&self) -> String {
-        format!("Shell: \n{}\n", self.shell_script)
+    fn describe(&self) -> TaskDescription {
+        TaskDescription {
+            task_type: "shell".to_string(),
+            description: self.shell_script.lines().map(|s| s.to_string()).collect(),
+        }
     }
 }
 
@@ -306,7 +330,7 @@ impl RunnableTask for AlchemistTaskType {
         }
     }
 
-    fn describe(&self) -> String {
+    fn describe(&self) -> TaskDescription {
         match self {
             AlchemistTaskType::AlchemistBasicTask(task) => task.describe(),
             AlchemistTaskType::AlchemistSerialTasks(task) => task.describe(),
