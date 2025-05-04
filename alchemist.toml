@@ -23,16 +23,3 @@ serial_tasks = ["clean", "install"]
 
 [tasks.rebuild]
 serial_tasks = ["clean", "build"]
-
-[tasks.shell]
-shell_script = """
-cargo build
-cargo build
-cargo build
-cargo build
-cargo build
-cargo build
-"""
-
-[tasks.do_not_run]
-parallel_tasks = ["clean", "build"]

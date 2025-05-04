@@ -10,7 +10,6 @@ mod tasks;
 use std::env;
 
 use clap::Parser;
-use error::{AlchemistError, AssertionError};
 use owo_colors::OwoColorize;
 
 use crate::cli::interface;
@@ -45,7 +44,6 @@ fn main() {
         }
         return ();
     }
-    println!("args.list: {}", args.verbose);
     if args.list {
         if let Err(e) = interface::list_available_tasks(args.verbose) {
             terminal::error(e);

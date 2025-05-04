@@ -8,6 +8,7 @@ use crate::error::{AssertionError, Result, ResultContext};
 use crate::tasks::{RunnableTask, TaskDescription};
 use clap::{CommandFactory, Parser};
 use owo_colors::OwoColorize;
+use terminal_size::{terminal_size, Height, Width};
 
 // #[derive(Args)]
 // #[group(required = true, multiple = false)]
@@ -135,10 +136,29 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
 
     task_names.sort_by_key(|(k, _)| *k);
 
-    terminal::ok("Available tasks:");
-    for (task_name, description) in task_names {
+    println!(" ┌──────────────────┐");
+    println!(" │ Available tasks: │");
+    println!(" ├──────────────────┘");
+    if verbose > 0 {
+        println!(" │");
+    }
+
+    let num_tasks = task_names.len();
+
+    let usable_terminal_width = match terminal_size() {
+        Some((Width(terminal_w), Height(_))) => terminal_w as usize,
+        _ => 80,
+    } - 6;
+
+    for (i, (task_name, description)) in task_names.into_iter().enumerate() {
+        let (entry_prefix, desc_prefix) = if i == num_tasks - 1 {
+            (" └", "  ")
+        } else {
+            (" ├", " │")
+        };
         println!(
-            "\t{} {} {}",
+            "{} {} {} {}",
+            entry_prefix,
             task_name.bold(),
             "·",
             description.task_type.yellow()
@@ -149,7 +169,7 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
                 0..=5 => description.description,
                 _ => [
                     &description.description[0..2],
-                    &["...".to_string()],
+                    &["...".blue().to_string()],
                     &description.description[description.description.len() - 2..],
                 ]
                 .concat(),
@@ -157,9 +177,21 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
             _ => description.description,
         };
         for line in desc {
-            println!("\t\t{}", line);
+            let line_len = line.len();
+            if line_len > usable_terminal_width {
+                let line_size = (usable_terminal_width - 5) / 2;
+                println!(
+                    "{}    {}{}{}",
+                    desc_prefix,
+                    &line[0..line_size],
+                    " ... ".blue(),
+                    &line[line_len - line_size..]
+                );
+            } else {
+                println!("{}    {}", desc_prefix, line);
+            }
         }
-        println!();
+        println!("{}", desc_prefix);
     }
 
     Ok(())

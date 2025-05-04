@@ -48,7 +48,7 @@ pub fn locate_config() -> Result<PathBuf> {
 }
 
 pub fn parse_config(config_file_path: &PathBuf) -> Result<AlchemistConfig> {
-    terminal::debug(format!("searching for {}", CONFIG_FILE));
+    terminal::debug(format!("searching for {}\n", CONFIG_FILE));
 
     let config_file_content =
         fs::read_to_string(config_file_path).error_msg("Could not read the config file")?;
