@@ -22,7 +22,7 @@ pub(crate) struct CliArgs {
     #[arg(short, long, help="Lists all available commands in the current project. Use -v(v) for more detailed output\n    -v\tShow what each task does\n    -vv\tExpand ShellScriptTasks", conflicts_with_all=["init", "shell_complete", "commands"])]
     pub list: bool,
 
-    #[arg(short, action = clap::ArgAction::Count, hide = true, conflicts_with_all=["init", "shell_complete", "commands"])]
+    #[arg(short, long, action = clap::ArgAction::Count, hide = true, conflicts_with_all=["init", "shell_complete", "commands"])]
     pub verbose: u8,
 
     #[arg(short, long, help = "Write an alchemist example file to start a new alchemist project", conflicts_with_all=["list", "shell_complete", "commands"])]
