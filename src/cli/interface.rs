@@ -10,12 +10,6 @@ use clap::{CommandFactory, Parser};
 use owo_colors::OwoColorize;
 use terminal_size::{terminal_size, Height, Width};
 
-// #[derive(Args)]
-// #[group(required = true, multiple = false)]
-// pub(crate) struct ListCommand {
-//
-// }
-
 #[derive(Parser, Debug)]
 #[clap(author, about)]
 pub(crate) struct CliArgs {
@@ -108,13 +102,6 @@ pub(crate) fn generate_completions() {
         &completion_dir,
     )
     .expect("could not write completions file");
-    clap_complete::generate_to(
-        clap_complete::Shell::Fish,
-        &mut cmd,
-        "alch",
-        &completion_dir,
-    )
-    .expect("could not write completions file");
 }
 
 pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
@@ -126,7 +113,7 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
         return Ok(());
     }
 
-    // Filtering of hidden tasks is disabled on purpose here
+    // Filtering of hidden tasks unless verbose flag(s) are given.
     let mut task_names = alchemist_config
         .tasks
         .iter()
@@ -157,10 +144,9 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
             (" ├", " │")
         };
         println!(
-            "{} {} {} {}",
+            "{} {} · {}",
             entry_prefix,
             task_name.bold(),
-            "·",
             description.task_type.yellow()
         );
         let desc = match verbose {
