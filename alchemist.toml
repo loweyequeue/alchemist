@@ -23,3 +23,42 @@ serial_tasks = ["clean", "install"]
 
 [tasks.rebuild]
 serial_tasks = ["clean", "build"]
+
+[tasks.test]
+shell_script = """
+set -e
+echo "- Preparing env"
+echo "Running tests..."
+cargo test --release
+echo "Tests completed successfully."
+"""
+
+[tasks.long]
+shell_script = """
+Line looooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong, so very, very, very lloooooooooooooooooooooooooooooooooooooooooooooooooooooong line.
+Line 2
+Line 3
+Line 4
+Line 5
+Line 6
+Line 7
+Line 8
+Line 9
+Line 10
+Line 11
+Line 12
+Line 13
+Line 14
+Line 15
+Line 16
+Line 17
+Line 18
+Line 19
+Line 20
+Line 21
+Line 22
+Line 23
+Line 24
+Line 25
+Line 26
+"""
