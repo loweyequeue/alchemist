@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "interface_test.rs"]
+mod interface_test;
+
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -136,15 +140,6 @@ fn graphemes_in_range_safe(s: &str, start: Option<usize>, end: Option<usize>) ->
     result
 }
 
-fn graphemes_slice_safe(s: &str, start: Option<usize>, end: Option<usize>) -> &str {
-    // TODO: Implement this function to return a slice of a string based on grapheme indices, see graphemes_in_range_safe above...
-    if start.is_none() && end.is_none() {
-        return s;
-    }
-    let us_start = start.unwrap_or(0);
-    ""
-}
-
 pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
     let config_file_path = locate_config()?;
     let alchemist_config = parse_config(&config_file_path)?;
@@ -224,56 +219,4 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_graphemes_in_range_safe() {
-        use std::panic::{self, PanicHookInfo};
-
-        let s = "😀🥹🤣😇";
-
-        // Test length.
-        assert_eq!(grapheme_length(s), 4);
-        assert_eq!(s.len(), 16);
-
-        // Test slicing with (at least .chars()) graphemes is needed to prevent panics.
-
-        // Save the original panic hook
-        let original_hook = panic::take_hook();
-
-        // Set a no-op hook to suppress output
-        panic::set_hook(Box::new(|_info: &PanicHookInfo| {
-            // Do nothing
-        }));
-        let result = std::panic::catch_unwind(|| {
-            let _crash = &s[0..1];
-        });
-
-        // Restore the original hook
-        panic::set_hook(original_hook);
-
-        assert!(result.is_err());
-
-        // Test happy-path cases.
-        assert_eq!(graphemes_in_range_safe(s, None, None), "😀🥹🤣😇");
-        assert_eq!(graphemes_in_range_safe(s, Some(0), Some(5)), "😀🥹🤣😇");
-        assert_eq!(graphemes_in_range_safe(s, Some(1), Some(4)), "🥹🤣😇");
-        assert_eq!(graphemes_in_range_safe(s, Some(1), Some(3)), "🥹🤣");
-        assert_eq!(graphemes_in_range_safe(s, Some(1), Some(2)), "🥹");
-        assert_eq!(graphemes_in_range_safe(s, Some(1), Some(1)), "");
-        assert_eq!(graphemes_in_range_safe(s, Some(0), Some(0)), "");
-        assert_eq!(graphemes_in_range_safe(s, None, Some(2)), "😀🥹");
-        assert_eq!(graphemes_in_range_safe(s, Some(2), None), "🤣😇");
-
-        // Test safety (out of bounds, wrong indices).
-        assert_eq!(graphemes_in_range_safe(s, Some(10), None), "");
-        assert_eq!(graphemes_in_range_safe(s, Some(3), Some(2)), "");
-        assert_eq!(graphemes_in_range_safe(s, Some(10), Some(5)), "");
-        assert_eq!(graphemes_in_range_safe(s, Some(0), Some(10)), "😀🥹🤣😇");
-        assert_eq!(graphemes_in_range_safe(s, Some(10), Some(20)), "");
-    }
 }
