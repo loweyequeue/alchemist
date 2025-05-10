@@ -1,20 +1,22 @@
+#[cfg(test)]
+#[path = "interface_test.rs"]
+mod interface_test;
+
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
 use crate::cli::terminal;
-use crate::config::{locate_config, parse_config, set_cwd_to_config_dir, CONFIG_FILE};
+use crate::config::{CONFIG_FILE, locate_config, parse_config, set_cwd_to_config_dir};
 use crate::error::{AssertionError, Result, ResultContext};
 use crate::tasks::{RunnableTask, TaskDescription};
 use clap::{CommandFactory, Parser};
 use owo_colors::OwoColorize;
-use terminal_size::{terminal_size, Height, Width};
+use terminal_size::{Height, Width, terminal_size};
+use unicode_segmentation::UnicodeSegmentation;
 
-// #[derive(Args)]
-// #[group(required = true, multiple = false)]
-// pub(crate) struct ListCommand {
-//
-// }
+const INDENT_TASK_CONTENT: usize = 6;
+const TERMINAL_WIDTH_DEFAULT: usize = 80;
 
 #[derive(Parser, Debug)]
 #[clap(author, about)]
@@ -108,13 +110,34 @@ pub(crate) fn generate_completions() {
         &completion_dir,
     )
     .expect("could not write completions file");
-    clap_complete::generate_to(
-        clap_complete::Shell::Fish,
-        &mut cmd,
-        "alch",
-        &completion_dir,
-    )
-    .expect("could not write completions file");
+}
+
+fn grapheme_length(s: &str) -> usize {
+    s.graphemes(true).count()
+}
+
+fn graphemes_in_range_safe(s: &str, start: Option<usize>, end: Option<usize>) -> String {
+    if start.is_none() && end.is_none() {
+        return s.to_string();
+    }
+
+    let mut result = String::new();
+    let us_start = start.unwrap_or(0);
+    let graphemes = s.graphemes(true).skip(us_start);
+    match end {
+        Some(us_end) => {
+            let nr = us_end.saturating_sub(us_start);
+            graphemes.take(nr).for_each(|g| {
+                result.push_str(g);
+            });
+        }
+        None => {
+            graphemes.for_each(|g| {
+                result.push_str(g);
+            });
+        }
+    }
+    result
 }
 
 pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
@@ -126,7 +149,7 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
         return Ok(());
     }
 
-    // Filtering of hidden tasks is disabled on purpose here
+    // Filtering of hidden tasks unless verbose flag(s) are given.
     let mut task_names = alchemist_config
         .tasks
         .iter()
@@ -147,8 +170,8 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
 
     let usable_terminal_width = match terminal_size() {
         Some((Width(terminal_w), Height(_))) => terminal_w as usize,
-        _ => 80,
-    } - 6;
+        _ => TERMINAL_WIDTH_DEFAULT,
+    } - INDENT_TASK_CONTENT;
 
     for (i, (task_name, description)) in task_names.into_iter().enumerate() {
         let (entry_prefix, desc_prefix) = if i == num_tasks - 1 {
@@ -157,10 +180,9 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
             (" ├", " │")
         };
         println!(
-            "{} {} {} {}",
+            "{} {} · {}",
             entry_prefix,
             task_name.bold(),
-            "·",
             description.task_type.yellow()
         );
         let desc = match verbose {
@@ -177,15 +199,17 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
             _ => description.description,
         };
         for line in desc {
-            let line_len = line.len();
+            // Use graphemes for correct length and slicing (and prevent panic
+            // via breaking up utf-8 unicode characters):
+            let line_len = grapheme_length(&line);
             if line_len > usable_terminal_width {
-                let line_size = (usable_terminal_width - 5) / 2;
+                let line_part_len = (usable_terminal_width - 5) / 2;
                 println!(
                     "{}    {}{}{}",
                     desc_prefix,
-                    &line[0..line_size],
+                    graphemes_in_range_safe(&line, None, Some(line_part_len)),
                     " ... ".blue(),
-                    &line[line_len - line_size..]
+                    graphemes_in_range_safe(&line, Some(line_len - line_part_len), None)
                 );
             } else {
                 println!("{}    {}", desc_prefix, line);
