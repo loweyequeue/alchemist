@@ -1,6 +1,6 @@
-use crate::error::{AlchemistError, ErrorContext};
-
 use super::*;
+
+use crate::error::{AlchemistError, ErrorContext};
 
 #[test]
 fn locate_config_in_checked_out_repo() {
@@ -46,6 +46,37 @@ fn local_config_in_tempdir() {
     );
 
     set_current_dir(original_cwd).unwrap();
+}
+
+#[test]
+fn parse_config_order_of_tasks() {
+    let original_cwd = current_dir().unwrap(); // save original cwd
+
+    // Create config in a tempdir
+    let tempdir = tempfile::tempdir().unwrap();
+    let config_path = tempdir.path().join("alchemist.toml");
+    let task_template = r#"
+        [tasks.taskX]
+        command = ""
+        args = []"#
+        .to_string()
+        + "\n\n";
+    let mut content = String::new();
+    for i in 1..=12 {
+        content.push_str(&task_template.replace("X", &i.to_string()));
+    }
+
+    fs::write(&config_path, content).unwrap();
+    set_current_dir(&tempdir).unwrap();
+
+    let config = parse_config(&config_path).unwrap();
+    assert_eq!(config.tasks.len(), 12);
+    for (i, (task_name, task_enum)) in config.tasks.iter().enumerate() {
+        // After 12 tasks in-order, smells ok.
+        assert_eq!(task_name, &format!("task{}", i + 1));
+    }
+
+    set_current_dir(original_cwd).unwrap(); // restore original cwd
 }
 
 // TODO:

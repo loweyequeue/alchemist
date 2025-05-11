@@ -8,6 +8,7 @@ version = "0.3.6"
 dependencies = [
  "clap",
  "clap_complete",
+ "indexmap",
  "owo-colors",
  "serde",
  "tempfile",
@@ -187,6 +188,7 @@ checksum = "cea70ddb795996207ad57735b50c5982d8844f38ba9ee5f1aedcfb708a2aa11e"
 dependencies = [
  "equivalent",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]

@@ -157,8 +157,6 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
         .map(|(k, v)| (k, v.describe()))
         .collect::<Vec<(&String, TaskDescription)>>();
 
-    task_names.sort_by_key(|(k, _)| *k);
-
     println!(" ┌──────────────────┐");
     println!(" │ Available tasks: │");
     println!(" ├──────────────────┘");
