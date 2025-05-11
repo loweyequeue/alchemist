@@ -4,8 +4,10 @@ mod config_test;
 
 use std::env::{current_dir, set_current_dir};
 
+use std::fs;
 use std::path::PathBuf;
-use std::{collections::HashMap, fs};
+
+use indexmap::IndexMap;
 
 use serde::Deserialize;
 
@@ -28,7 +30,7 @@ pub const CONFIG_FILE: &str = "alchemist.toml";
 /// ```
 pub struct AlchemistConfig {
     /// Contains a map of tasks that can be of multiple task types
-    pub tasks: HashMap<String, AlchemistTaskType>,
+    pub tasks: IndexMap<String, AlchemistTaskType>,
 }
 
 pub fn locate_config() -> Result<PathBuf> {

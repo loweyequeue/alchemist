@@ -150,14 +150,12 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
     }
 
     // Filtering of hidden tasks unless verbose flag(s) are given.
-    let mut task_names = alchemist_config
+    let task_names = alchemist_config
         .tasks
         .iter()
         .filter(|(_, v)| v.is_shown() || verbose >= 1)
         .map(|(k, v)| (k, v.describe()))
         .collect::<Vec<(&String, TaskDescription)>>();
-
-    task_names.sort_by_key(|(k, _)| *k);
 
     println!(" ┌──────────────────┐");
     println!(" │ Available tasks: │");

@@ -2,6 +2,8 @@ use super::*;
 
 use crate::error::ErrorContext;
 
+use indexmap::IndexMap;
+
 //
 // BasicTask tests:
 //
@@ -17,7 +19,7 @@ fn basic_task() {
     let ret = basic.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     assert_eq!(ret, Result::Ok(()));
@@ -42,7 +44,7 @@ fn basic_task_env_vars() {
     let ret = basic.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
 
@@ -64,7 +66,7 @@ fn basic_task_nonzero_exit_code() {
     let ret = basic.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     assert_eq!(
@@ -90,7 +92,7 @@ fn basic_task_spawn_failure() {
     let ret = basic.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     let alchem_err = ret.as_ref().err().unwrap();
@@ -120,7 +122,7 @@ fn shell_task() {
     let ret = shell.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     assert_eq!(ret, Result::Ok(()));
@@ -135,7 +137,7 @@ fn shell_task_nonzero_exit_code() {
     let ret = shell.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     assert_eq!(
@@ -160,7 +162,7 @@ fn serial_task_empty() {
     let ret = serial.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     assert!(ret.is_ok());
@@ -174,7 +176,7 @@ fn serial_tasks_ok() {
         serial_tasks: vec!["one".to_string(), "two".to_string()],
         hide: None,
     };
-    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+    let mut tasks: IndexMap<String, AlchemistTaskType> = IndexMap::new();
 
     tasks.insert(
         "one".to_string(),
@@ -217,7 +219,7 @@ fn test_serial_task_one_fail() {
         serial_tasks: vec!["one".to_string(), "two".to_string()],
         hide: None,
     };
-    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+    let mut tasks: IndexMap<String, AlchemistTaskType> = IndexMap::new();
     tasks.insert(
         "one".to_string(),
         AlchemistBasicTask {
@@ -264,7 +266,7 @@ fn parallel_task_empty() {
     let ret = parallel.run(
         "name",
         &AlchemistConfig {
-            tasks: HashMap::new(),
+            tasks: IndexMap::new(),
         },
     );
     assert!(ret.is_ok());
@@ -276,7 +278,7 @@ fn parallel_tasks_one_fail() {
         parallel_tasks: vec!["one".to_string(), "two".to_string()],
         hide: None,
     };
-    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+    let mut tasks: IndexMap<String, AlchemistTaskType> = IndexMap::new();
     tasks.insert(
         "one".to_string(),
         AlchemistBasicTask {
@@ -315,7 +317,7 @@ fn parallel_tasks_actually_run_parallel() {
         parallel_tasks: vec!["one".to_string(), "two".to_string()],
         hide: None,
     };
-    let mut tasks: HashMap<String, AlchemistTaskType> = HashMap::new();
+    let mut tasks: IndexMap<String, AlchemistTaskType> = IndexMap::new();
 
     tasks.insert(
         "one".to_string(),
