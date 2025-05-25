@@ -1,0 +1,18 @@
+[jobs.nextest]
+# This job runs the Nextest test suite for a Rust project, adapted from the default:
+# added `--no-fail-fast` to ensure all tests run even if some fail.
+#
+# See:
+#  - https://github.com/Canop/bacon/blob/main/defaults/default-bacon.toml
+#  - https://dystroy.org/bacon/config/
+command = [
+  "cargo",
+  "nextest",
+  "run",
+  "--hide-progress-bar",
+  "--failure-output",
+  "final",
+  "--no-fail-fast",
+]
+need_stdout = true
+analyzer = "nextest"
