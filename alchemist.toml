@@ -2,7 +2,6 @@
 command = "cargo"
 args = ["build", "--release"]
 
-
 [tasks.cargo_install]
 command = "cargo"
 args = ["install", "--path", "."]
@@ -23,3 +22,7 @@ serial_tasks = ["clean", "install"]
 
 [tasks.rebuild]
 serial_tasks = ["clean", "build"]
+
+[tasks.test]
+command = "cargo"
+args = ["nextest", "run", "--no-fail-fast"]
