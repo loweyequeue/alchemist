@@ -10,8 +10,11 @@ use crate::cli::terminal;
 use crate::config::{CONFIG_FILE, locate_config, parse_config, set_cwd_to_config_dir};
 use crate::error::{AssertionError, Result, ResultContext};
 use crate::tasks::{RunnableTask, TaskDescription};
+
 use clap::{CommandFactory, Parser};
+use once_cell::sync::Lazy;
 use owo_colors::OwoColorize;
+use regex::Regex;
 use terminal_size::{Height, Width, terminal_size};
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -115,6 +118,61 @@ pub(crate) fn generate_completions() {
 fn grapheme_length(s: &str) -> usize {
     s.graphemes(true).count()
 }
+
+static ANSI_ESCAPE_RE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\x1B\[(?P<params>[0-9;]+)(?P<code>[A-Za-z])").unwrap());
+
+fn extract_ansi_escapes(s: &str) -> Vec<AnsiEscape> {
+    let mut results = Vec::new();
+    ANSI_ESCAPE_RE.captures_iter(s).for_each(|cap| {
+        let fullmatch = (&cap[0]).to_string();
+        let params = cap["params"].to_string();
+        let code = cap["code"].chars().next().unwrap();
+        results.push(AnsiEscape {
+            fullmatch,
+            params: params.to_string(),
+            code,
+        });
+    });
+    results
+}
+
+fn assert_only_ansi_colors(s: &str) {
+    extract_ansi_escapes(s).iter().for_each(|escape| {
+        if escape.code != 'm' {
+            panic!("Unsupported ANSI code: {}", escape.code);
+        }
+    });
+}
+
+fn grapheme_length_colored<S: ToString>(s: S) -> usize {
+    let s = s.to_string();
+    assert_only_ansi_colors(&s);
+    let s = ANSI_ESCAPE_RE.replace_all(&s, "");
+    s.graphemes(true).count()
+}
+
+#[derive(Debug)]
+struct AnsiEscape {
+    fullmatch: String,
+    params: String,
+    code: char,
+}
+
+// let text = "\x1B[1;31mHello\x1B[0m World \x1B[4mUnderlined\x1B[0m";
+//
+// let escapes: Vec<AnsiEscape> = re
+//     .captures_iter(text)
+//     .map(|cap| AnsiEscape {
+//         full: cap[0].to_string(),
+//         params: cap["params"].to_string(),
+//         code: cap["code"].chars().next().unwrap(), // code is 1 char
+//     })
+//     .collect();
+//
+// for escape in escapes {
+//     println!("{:?}", escape);
+// }
 
 fn graphemes_in_range_safe(s: &str, start: Option<usize>, end: Option<usize>) -> String {
     if start.is_none() && end.is_none() {
