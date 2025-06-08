@@ -10,6 +10,7 @@ use crate::cli::terminal;
 use crate::config::{CONFIG_FILE, locate_config, parse_config, set_cwd_to_config_dir};
 use crate::error::{AssertionError, Result, ResultContext};
 use crate::tasks::{RunnableTask, TaskDescription};
+
 use clap::{CommandFactory, Parser};
 use owo_colors::OwoColorize;
 use terminal_size::{Height, Width, terminal_size};
@@ -112,10 +113,12 @@ pub(crate) fn generate_completions() {
     .expect("could not write completions file");
 }
 
-fn grapheme_length(s: &str) -> usize {
+/// Counting graphemes: TODO: Wrong fn for this!
+fn grapheme_count(s: &str) -> usize {
     s.graphemes(true).count()
 }
 
+/// Returns a string containing graphemes in the specified range.
 fn graphemes_in_range_safe(s: &str, start: Option<usize>, end: Option<usize>) -> String {
     if start.is_none() && end.is_none() {
         return s.to_string();
@@ -199,7 +202,7 @@ pub(crate) fn list_available_tasks(verbose: u8) -> Result<()> {
         for line in desc {
             // Use graphemes for correct length and slicing (and prevent panic
             // via breaking up utf-8 unicode characters):
-            let line_len = grapheme_length(&line);
+            let line_len = grapheme_count(&line);
             if line_len > usable_terminal_width {
                 let line_part_len = (usable_terminal_width - 5) / 2;
                 println!(

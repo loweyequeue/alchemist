@@ -1,0 +1,14 @@
+[tasks.command_escaping]
+command = "pri\n|\tf"
+args = [",\tdone\n"]
+
+[tasks.shell_escaping]
+shell_script = '''
+echo "Hello, \t\t\tWorld!\n\n\n"
+'''
+
+[tasks.serial_escaping]
+serial_tasks = ["o\tn\ne", "t\tw\no", "d\ton\ne"]
+
+[tasks.parallel_escaping]
+parallel_tasks = ["o\tn\ne", "t\tw\no", "d\ton\ne"]
